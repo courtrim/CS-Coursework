@@ -135,6 +135,7 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 
 	if ((ht->count / (double)ht->tableSize) > LOAD_FACTOR_THRESHOLD)
 	{
+		printf("need to to resize...\n");
 		// Add code to set table size to a new prime number
 	}
 

@@ -19,6 +19,7 @@ void testHash();
 void testHashContains();
 void testHashInsert_WithPreExistingKey();
 void testHashInsert_IncrementsCount();
+void testHashInsert_ResizeHashTable();
 
 /*FIXME
  * Changed value type for atMap(). mention at turn in
@@ -157,6 +158,7 @@ void testHash()
 	testHashContains();
 	testHashInsert_WithPreExistingKey();
 	testHashInsert_IncrementsCount();
+	testHashInsert_ResizeHashTable();
 	printf("Ending test hash...\n");
 }
 
@@ -252,5 +254,43 @@ void testHashInsert_IncrementsCount()
 	if (size(hashTable) == 2)
 	{
 		printf("Hash table insert() - Count test for key1 passed\n");
+	}
+}
+
+void testHashInsert_ResizeHashTable()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "saw";
+	char *fourthWord = "the";
+	char *fifthWord = "valley";
+	char *sixthWord = "sun";
+	char *seventhWord = "bun";
+	char *eightWord = "fun";
+	char *ninthWord = "run";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+	insertMap(hashTable, thirdWord, 1);
+	insertMap(hashTable, fourthWord, 1);
+	insertMap(hashTable, fifthWord, 1);
+	insertMap(hashTable, sixthWord, 1);
+	insertMap(hashTable, seventhWord, 1);
+	insertMap(hashTable, eightWord, 1);
+	insertMap(hashTable, ninthWord, 1);
+
+	if (size(hashTable) == 23)
+	{
+		printf("Hash table insert() - resizing passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() - resizing FAILED!!!\n");
 	}
 }
