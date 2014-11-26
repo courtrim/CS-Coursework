@@ -65,6 +65,43 @@ int _getIndexFromHashFunc(char *str)
 	}
 }
 
+/* FIXME
+Purpose:
+Preconditions:
+Parameters:
+Returns:
+*/
+int _getNextHashSize(struct hashMap *ht)
+{
+	int currentSize = ht->tableSize;
+	assert(currentSize > 0); // Make sure hash table size is greater than 0
+
+	// Double current size check to see if prime.
+	int sizeToTest = currentSize * 2;
+	int numIsPrime = 1; // 1, means false
+	int i;
+
+	// FIXME -- comment this out
+	while (numIsPrime)
+	{
+		for (i = 2; i < sizeToTest; i++)
+		{
+			if (sizeToTest % i == 0)
+			{
+				numIsPrime = 0;
+				break;
+			}
+		}
+
+		if (numIsPrime)
+		{
+			break;
+		}
+	}
+
+	return sizeToTest;
+}
+
 /* allocate memory and initialize a hash map*/
 hashMap *createMap(int tableSize) {
 	assert(tableSize > 0);
@@ -136,6 +173,8 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 	if ((ht->count / (double)ht->tableSize) > LOAD_FACTOR_THRESHOLD)
 	{
 		printf("need to to resize...\n");
+		int nextSize = _getNextHashSize(ht);
+		printf("the next size is %d. \n", nextSize);
 		// Add code to set table size to a new prime number
 	}
 
