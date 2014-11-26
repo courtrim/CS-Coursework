@@ -109,18 +109,17 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
 }
 
 /*
+ Implementation Notes:
  insert the following values into a hashLink, you must create this hashLink but
  only after you confirm that this key does not already exist in the table. For example, you
  cannot have two hashLinks for the word "taco".
  
- if a hashLink already exists in the table for the key provided you should
- replace that hashLink--this requires freeing up the old memory pointed by hashLink->value
- and then pointing hashLink->value to value v.
+ if a hashLink already exists in the table for the key provided, replace the value of that
+ hashLink with the new value and exit the function.
  
  also, you must monitor the load factor and resize when the load factor is greater than
  or equal LOAD_FACTOR_THRESHOLD (defined in hashMap.h).
- */
-/*
+
 Purpose:
 Preconditions: n/a
 Parameters: ht -
@@ -150,6 +149,18 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 	if (containsKey(ht, k) == 1)
 	{
 		/*FIXME*/
+		struct hashLink *curPtr = ht->table[index];
+		while(curPtr != 0)
+		{
+			if (curPtr->key == k)
+			{
+				// Found the key, set the value for the current hash link
+				curPtr->value = v;
+				return;
+			}
+
+			curPtr = curPtr->next;
+		}
 	}
 
 	// if hash link does not exist,
@@ -176,20 +187,15 @@ ValueType* atMap (struct hashMap * ht, KeyType k)
 }
 
 /*
- a simple yes/no if the key is in the hash table.
- 0 is no, all other values are yes.
- */
-/*
-Purpose:
+Purpose: Checks if a key is in a hash table
 Preconditions: Hash map is not null
-Parameters: ht -
-			k -
+Parameters: ht - pointer to a hash map
+			k - the key to search for
 Returns: Returns 1, if key is in hash table
 		 Returns 0, if key is not in hash table
 */
 int containsKey (struct hashMap * ht, KeyType k)
 {  
-	/*FIXME*/
 	// Check Preconditions
 	assert(ht != 0);
 

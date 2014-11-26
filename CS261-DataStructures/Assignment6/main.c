@@ -16,6 +16,8 @@
  */
 char* getWord(FILE *file);
 void testHash();
+void testHashContains();
+void testHashInsert_WithPreExistingKey();
 
 int main (int argc, const char * argv[]) {
 	const char* filename;
@@ -146,5 +148,73 @@ void testHash()
 	insertMap(hashTable, firstWord, 1);
 	insertMap(hashTable, secondWord, 1);
 
+	// Run Tests
+	testHashContains();
+	testHashInsert_WithPreExistingKey();
 	printf("Ending test hash...\n");
+}
+
+void testHashContains()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "good";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+
+	// Test if the first word is in the hash table
+	if (containsKey(hashTable, firstWord))
+	{
+		printf("First contains() passed...\n");
+	}
+	else
+	{
+		printf("First contains() failed...\n");
+	}
+
+	// Test if the second word is in the hash table
+	if (containsKey(hashTable, secondWord))
+	{
+		printf("Second contains() passed...\n");
+	}
+	else
+	{
+		printf("Second contains() failed...\n");
+	}
+
+	// Test if the third word is not in the hash table
+	if (!containsKey(hashTable, thirdWord))
+	{
+		printf("not contains() passed...\n");
+	}
+
+	printf("\n");
+}
+
+void testHashInsert_WithPreExistingKey()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "good";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, firstWord, 10);
+
+	// Need a function to get a value out of the hash table
+	/*FIXME*/
+
+	printf("\n");
 }
