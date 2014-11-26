@@ -4,8 +4,6 @@
 #include <assert.h>
 #include "hashMap.h"
 
-
-
 /*the first hashing function you can use*/
 int stringHash1(char * str)
 {
@@ -31,14 +29,28 @@ void _initMap (struct hashMap * ht, int tableSize)
 {
 	int index;
 	if(ht == NULL)
+	{
 		return;
+	}
+
 	ht->table = (hashLink**)malloc(sizeof(hashLink*) * tableSize);
 	ht->tableSize = tableSize;
 	ht->count = 0;
 	for(index = 0; index < tableSize; index++)
+	{
 		ht->table[index] = NULL;
+	}
 }
 
+/*
+Purpose: Gets the hash number from the hash function.
+		 This function determines which hash function
+		 to use depending on the definition of HASHING_FUNCTION
+		 located in the hashMap.h file
+Preconditions: n/a
+Parameters: str - a null terminated string to hashify
+Returns: a hash number
+*/
 int _getIndexFromHashFunc(char *str)
 {
 	if (HASHING_FUNCTION == 1)
@@ -108,6 +120,14 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
  also, you must monitor the load factor and resize when the load factor is greater than
  or equal LOAD_FACTOR_THRESHOLD (defined in hashMap.h).
  */
+/*
+Purpose:
+Preconditions: n/a
+Parameters: ht -
+			k -
+			v -
+Returns: n/a
+*/
 void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 {  
 	/*FIXME*/
@@ -125,6 +145,20 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 	{
 		index += ht->tableSize;
 	}
+
+	// Check if hash link exists, if it does then replace the link
+	if (containsKey(ht, k) == 1)
+	{
+		/*FIXME*/
+	}
+
+	// if hash link does not exist,
+	struct hashLink *newLink = malloc(sizeof(struct hashLink));
+	newLink->key = k;
+	newLink->value = v;
+	newLink->next = ht->table[index];
+	ht->table[index] = newLink;
+	ht->count++;
 }
 
 /*
@@ -142,14 +176,40 @@ ValueType* atMap (struct hashMap * ht, KeyType k)
 }
 
 /*
- a simple yes/no if the key is in the hashtable. 
+ a simple yes/no if the key is in the hash table.
  0 is no, all other values are yes.
  */
+/*
+Purpose:
+Preconditions: Hash map is not null
+Parameters: ht -
+			k -
+Returns: Returns 1, if key is in hash table
+		 Returns 0, if key is not in hash table
+*/
 int containsKey (struct hashMap * ht, KeyType k)
 {  
 	/*FIXME*/
 	// Check Preconditions
 	assert(ht != 0);
+
+	// Get hash index based on the key
+	int index = _getIndexFromHashFunc(k) % ht->tableSize;
+	if (index < 0)
+	{
+		index += ht->tableSize;
+	}
+
+	struct hashLink *curPtr = ht->table[index];
+	while(curPtr != 0)
+	{
+		if (curPtr->key == k)
+		{
+			return 1;
+		}
+
+		curPtr = curPtr->next;
+	}
 
 	return 0;
 }

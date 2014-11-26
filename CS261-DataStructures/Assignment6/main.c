@@ -15,6 +15,7 @@
  to free this memory when you no longer need it.
  */
 char* getWord(FILE *file);
+void testHash();
 
 int main (int argc, const char * argv[]) {
 	const char* filename;
@@ -43,6 +44,8 @@ int main (int argc, const char * argv[]) {
 	hashTable = createMap(tableSize);	   
 	
     /*... concordance code goes here ...*/
+	testHash();
+
 	char *curWord;
 	fileptr = fopen(filename, "r");
 	assert(fileptr != 0);
@@ -127,4 +130,21 @@ char* getWord(FILE *file)
 	}
 	word[length] = '\0';
 	return word;
+}
+
+void testHash()
+{
+	printf("Running test hash...\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "hello";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+
+	printf("Ending test hash...\n");
 }
