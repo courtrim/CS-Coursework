@@ -18,6 +18,11 @@ char* getWord(FILE *file);
 void testHash();
 void testHashContains();
 void testHashInsert_WithPreExistingKey();
+void testHashInsert_IncrementsCount();
+
+/*FIXME
+ * Changed value type for atMap(). mention at turn in
+ * */
 
 int main (int argc, const char * argv[]) {
 	const char* filename;
@@ -151,6 +156,7 @@ void testHash()
 	// Run Tests
 	testHashContains();
 	testHashInsert_WithPreExistingKey();
+	testHashInsert_IncrementsCount();
 	printf("Ending test hash...\n");
 }
 
@@ -194,8 +200,6 @@ void testHashContains()
 	{
 		printf("not contains() passed...\n");
 	}
-
-	printf("\n");
 }
 
 void testHashInsert_WithPreExistingKey()
@@ -208,13 +212,45 @@ void testHashInsert_WithPreExistingKey()
 
 	char *firstWord = "hello";
 	char *secondWord = "bye";
-	char *thirdWord = "good";
 
 	insertMap(hashTable, firstWord, 1);
 	insertMap(hashTable, firstWord, 10);
+	insertMap(hashTable, secondWord, 1);
+	insertMap(hashTable, secondWord, 20);
 
-	// Need a function to get a value out of the hash table
-	/*FIXME*/
+	if (atMap(hashTable, firstWord) == 10)
+	{
+		printf("Hash table insert() - Replaced value1 at pre-existing key passed \n");
+	}
 
+	if (atMap(hashTable, secondWord) == 20)
+	{
+		printf("Hash table insert() - Replaced value2 at pre-existing key passed \n");
+	}
+}
+
+void testHashInsert_IncrementsCount()
+{
 	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+
+	insertMap(hashTable, firstWord, 1);
+
+	if (size(hashTable) == 1)
+	{
+		printf("Hash table insert() - Count test for key1 passed\n");
+	}
+
+	insertMap(hashTable, secondWord, 1);
+
+	if (size(hashTable) == 2)
+	{
+		printf("Hash table insert() - Count test for key1 passed\n");
+	}
 }

@@ -148,7 +148,6 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 	// Check if hash link exists, if it does then replace the link
 	if (containsKey(ht, k) == 1)
 	{
-		/*FIXME*/
 		struct hashLink *curPtr = ht->table[index];
 		while(curPtr != 0)
 		{
@@ -163,7 +162,8 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 		}
 	}
 
-	// if hash link does not exist,
+	// If hash link does not exist, create a new link and
+	//	add it to the hash table at index
 	struct hashLink *newLink = malloc(sizeof(struct hashLink));
 	newLink->key = k;
 	newLink->value = v;
@@ -173,17 +173,45 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 }
 
 /*
- this returns the value (which is void*) stored in a hashLink specified by the key k.
- 
- if the user supplies the key "taco" you should find taco in the hashTable, then
- return the value member of the hashLink that represents taco.
+ Implementation Note:
+ I changed the return type from (ValueType*) to (ValueType) because the value
+ type in hashLink is an int and not int*.
  
  if the supplied key is not in the hashtable return NULL.
  */
-ValueType* atMap (struct hashMap * ht, KeyType k)
+/*
+Purpose: Gets the value from the hash table at the specified key
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+			k - the key to search for
+Returns: The value stored at the key.
+		 Returns 0 if value is not found.
+*/
+ValueType atMap (struct hashMap * ht, KeyType k)
 { 
-	/*FIXME*/
-	return NULL;
+	// Check Preconditions
+	assert(ht != 0);
+
+	// Get hash index based on the key
+	int index = _getIndexFromHashFunc(k) % ht->tableSize;
+	if (index < 0)
+	{
+		index += ht->tableSize;
+	}
+
+	// Find the key in the hash table
+	struct hashLink *curPtr = ht->table[index];
+	while(curPtr != 0)
+	{
+		if (curPtr->key == k)
+		{
+			// Return the value at the key
+			return curPtr->value;
+		}
+
+		curPtr = curPtr->next;
+	}
+	return 0;
 }
 
 /*

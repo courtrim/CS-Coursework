@@ -72,7 +72,7 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v);
 
  if the supplied key is not in the hashtable return NULL.
  */
-ValueType* atMap (struct hashMap * ht, KeyType k);
+ValueType atMap (struct hashMap * ht, KeyType k);
 
 /*
  a simple yes/no if the key is in the hashtable. 0 is no, all other values are
