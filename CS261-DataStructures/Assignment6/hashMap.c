@@ -117,7 +117,7 @@ hashMap *createMap(int tableSize) {
  Note: Before freeing up a hashLink, free the memory occupied by key and value
  */
 void _freeMap (struct hashMap * ht)
-{  
+{
 	/*FIXME*/
 }
 
@@ -130,8 +130,8 @@ void deleteMap(hashMap *ht) {
 	free(ht);
 }
 
-/* 
-Resizes the hash table to be the size newTableSize 
+/*
+Resizes the hash table to be the size newTableSize
 Preconditions: 1. hash table is not null
 			   2. new table size is greater than 0
 Parameters: ht
@@ -150,10 +150,10 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
  insert the following values into a hashLink, you must create this hashLink but
  only after you confirm that this key does not already exist in the table. For example, you
  cannot have two hashLinks for the word "taco".
- 
+
  if a hashLink already exists in the table for the key provided, replace the value of that
  hashLink with the new value and exit the function.
- 
+
  also, you must monitor the load factor and resize when the load factor is greater than
  or equal LOAD_FACTOR_THRESHOLD (defined in hashMap.h).
 
@@ -165,7 +165,7 @@ Parameters: ht -
 Returns: n/a
 */
 void insertMap (struct hashMap * ht, KeyType k, ValueType v)
-{  
+{
 	/*FIXME*/
 	// Check Preconditions
 	assert(ht != 0);
@@ -216,7 +216,7 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
  Implementation Note:
  I changed the return type from (ValueType*) to (ValueType) because the value
  type in hashLink is an int and not int*.
- 
+
  if the supplied key is not in the hashtable return NULL.
  */
 /*
@@ -228,7 +228,7 @@ Returns: The value stored at the key.
 		 Returns 0 if value is not found.
 */
 ValueType atMap (struct hashMap * ht, KeyType k)
-{ 
+{
 	// Check Preconditions
 	assert(ht != 0);
 
@@ -263,7 +263,7 @@ Returns: Returns 1, if key is in hash table
 		 Returns 0, if key is not in hash table
 */
 int containsKey (struct hashMap * ht, KeyType k)
-{  
+{
 	// Check Preconditions
 	assert(ht != 0);
 
@@ -295,7 +295,7 @@ int containsKey (struct hashMap * ht, KeyType k)
  will end your program.
  */
 void removeKey (struct hashMap * ht, KeyType k)
-{  
+{
 	/*FIXME*/
 }
 
@@ -303,7 +303,7 @@ void removeKey (struct hashMap * ht, KeyType k)
  returns the number of hashLinks in the table
  */
 int size (struct hashMap *ht)
-{  
+{
 	return ht->count;
 }
 
@@ -311,7 +311,7 @@ int size (struct hashMap *ht)
  returns the number of buckets in the table
  */
 int capacity(struct hashMap *ht)
-{  
+{
 	/*FIXME*/
 	return 0;
 }
@@ -321,38 +321,38 @@ int capacity(struct hashMap *ht)
  no hashlinks hanging off of them.
  */
 int emptyBuckets(struct hashMap *ht)
-{  
+{
 	/*FIXME*/
 	return 0;
 }
 
 /*
  returns the ratio of: (number of hashlinks) / (number of buckets)
- 
+
  this value can range anywhere from zero (an empty table) to more then 1, which
  would mean that there are more hashlinks then buckets (but remember hashlinks
  are like linked list nodes so they can hang from each other)
  */
 float tableLoad(struct hashMap *ht)
-{  
+{
 	/*FIXME*/
 	return 0;
 }
 void printMap (struct hashMap * ht)
 {
 	int i;
-	struct hashLink *temp;	
+	struct hashLink *temp;
 	for(i = 0;i < capacity(ht); i++){
 		temp = ht->table[i];
-		if(temp != 0) {		
-			printf("\nBucket Index %d -> ", i);		
+		if(temp != 0) {
+			printf("\nBucket Index %d -> ", i);
 		}
-		while(temp != 0){			
+		while(temp != 0){
 			printf("Key:%s|", temp->key);
 			printValue(temp->value);
 			printf(" -> ");
-			temp=temp->next;			
-		}		
+			temp=temp->next;
+		}
 	}
 }
 
