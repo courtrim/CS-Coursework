@@ -285,7 +285,7 @@ void testHashInsert_ResizeHashTable()
 	insertMap(hashTable, eightWord, 1);
 	insertMap(hashTable, ninthWord, 1);
 
-	if (size(hashTable) == 23)
+	if (capacity(hashTable) == 23)
 	{
 		printf("Hash table insert() - resizing passed\n");
 	}

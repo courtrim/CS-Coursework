@@ -65,26 +65,32 @@ int _getIndexFromHashFunc(char *str)
 	}
 }
 
-/* FIXME
-Purpose:
-Preconditions:
-Parameters:
-Returns:
+/*
+Purpose: Gets the next prime number hash size
+Preconditions: hash is not null.
+			   hash size is greater than 0
+Parameters: ht - pointer to the hash map
+Returns: A prime number that is the next size the hash map
+		 should resize to.
 */
 int _getNextHashSize(struct hashMap *ht)
 {
+	// Check Preconditions
+	assert(ht != 0);
+
 	int currentSize = ht->tableSize;
 	assert(currentSize > 0); // Make sure hash table size is greater than 0
 
-	// Double current size check to see if prime.
+	// Double current size and check to see if number is prime.
 	int sizeToTest = currentSize * 2;
 	int numIsPrime = 0; // 0, means false
 	int checkNextNum = 0; // 0, means false
 	int i;
 
-	// FIXME -- comment this out
 	while (!numIsPrime)
 	{
+		// Check every integer less than the proposed number to
+		// 	see if its prime
 		for (i = 2; i < sizeToTest; i++)
 		{
 			if (sizeToTest % i == 0)
@@ -92,15 +98,22 @@ int _getNextHashSize(struct hashMap *ht)
 				checkNextNum = 1;
 				break;
 			}
+			else
+			{
+				checkNextNum = 0;
+			}
 		}
 
 		if (checkNextNum)
 		{
+			// Did not find prime, increment and try again
 			sizeToTest++;
 		}
 		else
 		{
+			// Found the prime exit the loop
 			numIsPrime = 1;
+			break;
 		}
 	}
 
@@ -139,7 +152,8 @@ void deleteMap(hashMap *ht) {
 Resizes the hash table to be the size newTableSize
 Preconditions: 1. hash table is not null
 			   2. new table size is greater than 0
-Parameters: ht
+Parameters: ht - pointer to a hash map
+			newTableSize - integer for size to resize hash map to
 Returns: n/a
 */
 void _setTableSize(struct hashMap * ht, int newTableSize)
@@ -148,6 +162,12 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
 	// Check Preconditions
 	assert(ht != 0);
 	assert(newTableSize > 0);
+
+	// Save old data
+
+	// Allocate new table
+
+	// Copy over old elements into new array
 }
 
 /*
@@ -177,10 +197,8 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 
 	if ((ht->count / (double)ht->tableSize) > LOAD_FACTOR_THRESHOLD)
 	{
-		printf("need to to resize...\n");
 		int nextSize = _getNextHashSize(ht);
-		printf("the next size is %d. \n", nextSize);
-		// Add code to set table size to a new prime number
+		_setTableSize(ht, nextSize);
 	}
 
 	// Get hash index based on the key
@@ -305,20 +323,31 @@ void removeKey (struct hashMap * ht, KeyType k)
 }
 
 /*
- returns the number of hashLinks in the table
- */
+Purpose: Gets the number of hashLinks in the table
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+Returns: The number of hashLinks in the table
+*/
 int size (struct hashMap *ht)
 {
+	// Check Preconditions
+	assert(ht != 0);
+
 	return ht->count;
 }
 
 /*
- returns the number of buckets in the table
- */
+Purpose: Gets the number of buckets in the table
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+Returns: The number of buckets in the table
+*/
 int capacity(struct hashMap *ht)
 {
-	/*FIXME*/
-	return 0;
+	// Check Preconditions
+	assert(ht != 0);
+
+	return ht->tableSize;
 }
 
 /*
