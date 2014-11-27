@@ -78,24 +78,29 @@ int _getNextHashSize(struct hashMap *ht)
 
 	// Double current size check to see if prime.
 	int sizeToTest = currentSize * 2;
-	int numIsPrime = 1; // 1, means false
+	int numIsPrime = 0; // 0, means false
+	int checkNextNum = 0; // 0, means false
 	int i;
 
 	// FIXME -- comment this out
-	while (numIsPrime)
+	while (!numIsPrime)
 	{
 		for (i = 2; i < sizeToTest; i++)
 		{
 			if (sizeToTest % i == 0)
 			{
-				numIsPrime = 0;
+				checkNextNum = 1;
 				break;
 			}
 		}
 
-		if (numIsPrime)
+		if (checkNextNum)
 		{
-			break;
+			sizeToTest++;
+		}
+		else
+		{
+			numIsPrime = 1;
 		}
 	}
 
