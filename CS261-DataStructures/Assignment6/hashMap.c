@@ -164,10 +164,42 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
 	assert(newTableSize > 0);
 
 	// Save old data
+	hashLink **oldMap = ht->table;
+	int oldSize = ht->count;
 
 	// Allocate new table
+	ht->table = (hashLink**)malloc(newTableSize * sizeof(hashLink*));
+	assert(ht->table != 0);
+
+	ht->tableSize = newTableSize;
+	ht->count = 0;
+
+	// Set all hash elements in new table to null
+	int index;
+	for(index = 0; index < ht->tableSize; index++)
+	{
+		ht->table[index] = 0;
+	}
 
 	// Copy over old elements into new array
+	hashLink *currPtr;
+
+	int i;
+	for (i = 0; i < oldSize; i++)
+	{
+		if (oldMap[i] != 0)
+		{
+			currPtr = oldMap[i];
+			while(currPtr != 0)
+			{
+				insertMap(ht, currPtr->key, currPtr->value);
+				hashLink *tempLink = currPtr;
+				currPtr = currPtr->next;
+				free(tempLink);
+			}
+		}
+	}
+	free(oldMap);
 }
 
 /*
@@ -300,7 +332,7 @@ int containsKey (struct hashMap * ht, KeyType k)
 	struct hashLink *curPtr = ht->table[index];
 	while(curPtr != 0)
 	{
-		if (curPtr->key == k)
+		if ((KeyType)curPtr->key == k)
 		{
 			return 1;
 		}
@@ -372,6 +404,7 @@ float tableLoad(struct hashMap *ht)
 	/*FIXME*/
 	return 0;
 }
+
 void printMap (struct hashMap * ht)
 {
 	int i;

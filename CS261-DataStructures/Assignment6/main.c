@@ -30,7 +30,7 @@ int main (int argc, const char * argv[]) {
 	struct hashMap *hashTable;	
 	int tableSize = 10;
 	clock_t timer;
-	FILE *fileptr;	
+	FILE *fileptr;
 
     /*
      this part is using command line arguments, you can use them if you wish
@@ -287,10 +287,12 @@ void testHashInsert_ResizeHashTable()
 
 	if (capacity(hashTable) == 23)
 	{
-		printf("Hash table insert() - resizing passed\n");
+		printf("Hash table insert() - resizing to size 23 passed\n");
 	}
 	else
 	{
 		printf("Hash table insert() - resizing FAILED!!!\n");
 	}
+
+	printMap(hashTable);
 }
