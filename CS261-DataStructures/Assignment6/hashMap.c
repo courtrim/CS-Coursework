@@ -131,12 +131,36 @@ hashMap *createMap(int tableSize) {
 }
 
 /*
- Free all memory used by the buckets.
- Note: Before freeing up a hashLink, free the memory occupied by key and value
- */
+	Implementation Notes:
+		Note: Before freeing up a hashLink, free the memory occupied by key and value
+
+Purpose: Free all memory used by the buckets.
+Preconditions: 1. hash table is not null
+Parameters: ht - pointer to a hash map
+Returns: n/a
+*/
 void _freeMap (struct hashMap * ht)
 {
-	/*FIXME*/
+	// Check Preconditions
+	assert(ht != 0);
+
+	hashLink *currPtr;
+	int i;
+	for(i = 0; i < ht->tableSize; i++)
+	{
+		currPtr = ht->table[i];
+		while(currPtr != 0)
+		{
+			hashLink *tempLink = currPtr;
+			currPtr = currPtr->next;
+			free(tempLink);
+
+			ht->count--;
+		}
+	}
+
+	free(ht->table);
+	ht->table = 0;
 }
 
 /* Deallocate buckets and the hash map.*/
@@ -158,14 +182,13 @@ Returns: n/a
 */
 void _setTableSize(struct hashMap * ht, int newTableSize)
 {
-	/*FIXME*/
 	// Check Preconditions
 	assert(ht != 0);
 	assert(newTableSize > 0);
 
 	// Save old data
 	hashLink **oldMap = ht->table;
-	int oldSize = ht->count;
+	int oldSize = ht->tableSize;
 
 	// Allocate new table
 	ht->table = (hashLink**)malloc(newTableSize * sizeof(hashLink*));
@@ -193,6 +216,8 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
 			while(currPtr != 0)
 			{
 				insertMap(ht, currPtr->key, currPtr->value);
+
+				// Free the old hash link and move onto next hash link to copy
 				hashLink *tempLink = currPtr;
 				currPtr = currPtr->next;
 				free(tempLink);
@@ -214,16 +239,15 @@ void _setTableSize(struct hashMap * ht, int newTableSize)
  also, you must monitor the load factor and resize when the load factor is greater than
  or equal LOAD_FACTOR_THRESHOLD (defined in hashMap.h).
 
-Purpose:
-Preconditions: n/a
-Parameters: ht -
-			k -
-			v -
+Purpose: Inserts a key and value into a hash map
+Preconditions: 1. hash table is not null
+Parameters: ht - pointer to a hash map
+			k - the key to add
+			v - the value to add
 Returns: n/a
 */
 void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 {
-	/*FIXME*/
 	// Check Preconditions
 	assert(ht != 0);
 
@@ -246,7 +270,7 @@ void insertMap (struct hashMap * ht, KeyType k, ValueType v)
 		struct hashLink *curPtr = ht->table[index];
 		while(curPtr != 0)
 		{
-			if (curPtr->key == k)
+			if (strcmp(curPtr->key, k) == 0)
 			{
 				// Found the key, set the value for the current hash link
 				curPtr->value = v;
@@ -298,7 +322,7 @@ ValueType atMap (struct hashMap * ht, KeyType k)
 	struct hashLink *curPtr = ht->table[index];
 	while(curPtr != 0)
 	{
-		if (curPtr->key == k)
+		if (strcmp(curPtr->key, k) == 0)
 		{
 			// Return the value at the key
 			return curPtr->value;
@@ -332,7 +356,7 @@ int containsKey (struct hashMap * ht, KeyType k)
 	struct hashLink *curPtr = ht->table[index];
 	while(curPtr != 0)
 	{
-		if ((KeyType)curPtr->key == k)
+		if (strcmp(curPtr->key, k) == 0)
 		{
 			return 1;
 		}
@@ -344,14 +368,75 @@ int containsKey (struct hashMap * ht, KeyType k)
 }
 
 /*
+ Implementation Notes:
  find the hashlink for the supplied key and remove it, also freeing the memory
  for that hashlink. it is not an error to be unable to find the hashlink, if it
  cannot be found do nothing (or print a message) but do not use an assert which
  will end your program.
  */
+/*
+Purpose: Removes the link that has a specific key
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+			k - the key to search for
+Returns: n/a
+*/
 void removeKey (struct hashMap * ht, KeyType k)
 {
-	/*FIXME*/
+	// Check Preconditions
+	assert(ht != 0);
+
+	// Check if key exists in hash table
+	if (!containsKey(ht, k))
+	{
+		printf("Warning: key: %s, was not found for removal \n");
+		return;
+	}
+
+	// Get hash index based on the key
+	int index = _getIndexFromHashFunc(k) % ht->tableSize;
+	if (index < 0)
+	{
+		index += ht->tableSize;
+	}
+
+	hashLink *currPtr = ht->table[index];
+	if (currPtr == 0)
+	{
+		// This hash bucket is empty, return
+		return;
+	}
+	else if (currPtr->next == 0)
+	{
+		// This hash bucket only has 1 hash link, so empty the bucket
+		if (strcmp(currPtr->key, k) == 0)
+		{
+			free(ht->table[index]);
+			ht->table[index] = 0;
+
+			currPtr = 0;
+			ht->count--;
+			return;
+		}
+	}
+
+	// There is multiple hash links in the bucket, need to remove the
+	//  link and re-link all the other links correctly
+	while(currPtr->next != 0)
+	{
+		if (strcmp(currPtr->next->key, k) == 0)
+		{
+			hashLink *tempLink = currPtr->next;
+			currPtr->next = currPtr->next->next;
+			free(tempLink);
+			tempLink = 0;
+
+			ht->count--;
+			return;
+		}
+
+		currPtr = currPtr->next;
+	}
 }
 
 /*
@@ -383,33 +468,64 @@ int capacity(struct hashMap *ht)
 }
 
 /*
- returns the number of empty buckets in the table, these are buckets which have
- no hashlinks hanging off of them.
- */
+Purpose: Gets the number of empty buckets in the table
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+Returns: The number of empty buckets in hash table
+*/
 int emptyBuckets(struct hashMap *ht)
 {
-	/*FIXME*/
-	return 0;
+	// Check Preconditions
+	assert(ht != 0);
+
+	int numEmptyBuckets = 0;
+	int i;
+
+	// Determine how many empty buckets there are in the hash table
+	for (i = 0; i < ht->tableSize; i++)
+	{
+		if (ht->table[i] == 0)
+		{
+			numEmptyBuckets++;
+		}
+	}
+
+	return numEmptyBuckets;
 }
 
 /*
+ Implementation Notes:
  returns the ratio of: (number of hashlinks) / (number of buckets)
 
  this value can range anywhere from zero (an empty table) to more then 1, which
  would mean that there are more hashlinks then buckets (but remember hashlinks
  are like linked list nodes so they can hang from each other)
  */
+/*
+Purpose: Gets the ratio of: (number of hashlinks) / (number of buckets)
+Preconditions: Hash map is not null
+Parameters: ht - pointer to a hash map
+Returns: returns the ratio of: (number of hashlinks) / (number of buckets)
+*/
 float tableLoad(struct hashMap *ht)
 {
-	/*FIXME*/
-	return 0;
+	// Check Preconditions
+	assert(ht != 0);
+
+	// Check that number of buckets is greater than 0, to prevent a
+	// 	divide by zero error
+	int numOfBuckets = capacity(ht);
+	assert(numOfBuckets > 0);
+
+	return (size(ht) / (float)numOfBuckets);
 }
 
 void printMap (struct hashMap * ht)
 {
 	int i;
 	struct hashLink *temp;
-	for(i = 0;i < capacity(ht); i++){
+	for(i = 0;i < capacity(ht); i++)
+	{
 		temp = ht->table[i];
 		if(temp != 0) {
 			printf("\nBucket Index %d -> ", i);
@@ -421,6 +537,8 @@ void printMap (struct hashMap * ht)
 			temp=temp->next;
 		}
 	}
+
+	printf("\n");
 }
 
 

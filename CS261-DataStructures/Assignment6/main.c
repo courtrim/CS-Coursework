@@ -20,17 +20,25 @@ void testHashContains();
 void testHashInsert_WithPreExistingKey();
 void testHashInsert_IncrementsCount();
 void testHashInsert_ResizeHashTable();
+void testHashEmptyBuckets();
+void testHashTableLoad();
+void testHashRemove_FromSingleLinkBuckets();
+void testHashRemove_FromMultiLinkBuckets();
 
 /*FIXME
  * Changed value type for atMap(). mention at turn in
  * */
 
 int main (int argc, const char * argv[]) {
+	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 	const char* filename;
 	struct hashMap *hashTable;	
 	int tableSize = 10;
 	clock_t timer;
 	FILE *fileptr;
+
+	//KEVIN test code
+//	testHash();
 
     /*
      this part is using command line arguments, you can use them if you wish
@@ -43,7 +51,7 @@ int main (int argc, const char * argv[]) {
     if(argc == 2)
         filename = argv[1];
     else
-        filename = "input1.txt"; /*specify your input text file here*/
+        filename = "input3.txt"; /*specify your input text file here*/
     
     printf("opening file: %s\n", filename);
     
@@ -52,31 +60,30 @@ int main (int argc, const char * argv[]) {
 	hashTable = createMap(tableSize);	   
 	
     /*... concordance code goes here ...*/
-	testHash();
-
 	char *curWord;
 	fileptr = fopen(filename, "r");
 	assert(fileptr != 0);
 
-	// steps:
-	// 1. read in a word with getword()
 	curWord = getWord(fileptr);
-	// Test add first word
-	insertMap(hashTable, curWord, 1);
-	// Test contains first word
+	int existingValueToIncrement;
+
 	while(curWord != 0)
 	{
 
-		// 2. if the word is already in your hash table then increment it's number
-		//    of occurrences
-
+		if (!containsKey(hashTable, curWord))
+		{
+			insertMap(hashTable, curWord, 1);
+		}
+		else
+		{
+			existingValueToIncrement = (int)atMap(hashTable, curWord);
+			existingValueToIncrement++;
+			insertMap(hashTable, curWord, existingValueToIncrement);
+		}
 
 		curWord = getWord(fileptr);
 	}
 	fclose(fileptr);
-	// 3. If the word is not in your hash table then insert it with an occurrence
-	//    count of 1
-//		insertMap(hashTable, curWord, 1);
 	/*... concordance code ends here ...*/
 
 	printMap(hashTable);
@@ -159,7 +166,11 @@ void testHash()
 	testHashInsert_WithPreExistingKey();
 	testHashInsert_IncrementsCount();
 	testHashInsert_ResizeHashTable();
-	printf("Ending test hash...\n");
+	testHashEmptyBuckets();
+	testHashTableLoad();
+	testHashRemove_FromSingleLinkBuckets();
+	testHashRemove_FromMultiLinkBuckets();
+	printf("\nEnding test hash...\n");
 }
 
 void testHashContains()
@@ -202,6 +213,8 @@ void testHashContains()
 	{
 		printf("not contains() passed...\n");
 	}
+
+	deleteMap(hashTable);
 }
 
 void testHashInsert_WithPreExistingKey()
@@ -229,6 +242,8 @@ void testHashInsert_WithPreExistingKey()
 	{
 		printf("Hash table insert() - Replaced value2 at pre-existing key passed \n");
 	}
+
+	deleteMap(hashTable);
 }
 
 void testHashInsert_IncrementsCount()
@@ -255,6 +270,8 @@ void testHashInsert_IncrementsCount()
 	{
 		printf("Hash table insert() - Count test for key1 passed\n");
 	}
+
+	deleteMap(hashTable);
 }
 
 void testHashInsert_ResizeHashTable()
@@ -294,5 +311,293 @@ void testHashInsert_ResizeHashTable()
 		printf("Hash table insert() - resizing FAILED!!!\n");
 	}
 
-	printMap(hashTable);
+	// Test new resized hash table for correct contents
+	if (containsKey(hashTable, firstWord))
+	{
+		printf("Hash table insert() resizing - First contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - First contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, secondWord))
+	{
+		printf("Hash table insert() resizing - Second contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - Second contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, thirdWord))
+	{
+		printf("Hash table insert() resizing - third contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - third contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, thirdWord))
+	{
+		printf("Hash table insert() resizing - third contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - third contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, fourthWord))
+	{
+		printf("Hash table insert() resizing - fourth contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - fourth contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, fifthWord))
+	{
+		printf("Hash table insert() resizing - fifth contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - fifth contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, sixthWord))
+	{
+		printf("Hash table insert() resizing - sixth contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - sixth contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, seventhWord))
+	{
+		printf("Hash table insert() resizing - seventh contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - seventh contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, eightWord))
+	{
+		printf("Hash table insert() resizing - eight contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - eight contains() test FAILED!!!\n");
+	}
+
+	if (containsKey(hashTable, ninthWord))
+	{
+		printf("Hash table insert() resizing - ninth contains() test passed\n");
+	}
+	else
+	{
+		printf("Hash table insert() resizing - ninth contains() test FAILED!!!\n");
+	}
+
+	deleteMap(hashTable);
+}
+
+void testHashEmptyBuckets()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "saw";
+	char *fourthWord = "the";
+	char *fifthWord = "valley";
+	char *sixthWord = "sun";
+	char *seventhWord = "bun";
+	char *eightWord = "fun";
+	char *ninthWord = "run";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+	insertMap(hashTable, thirdWord, 1);
+
+	if (emptyBuckets(hashTable) == 7)
+	{
+		printf("EmptyBuckets() test after 3 inserts passed \n");
+	}
+	else
+	{
+		printf("EmptyBuckets() test after 3 inserts FAILED!!! \n");
+	}
+
+	insertMap(hashTable, fourthWord, 1);
+	insertMap(hashTable, fifthWord, 1);
+	insertMap(hashTable, sixthWord, 1);
+
+	if (emptyBuckets(hashTable) == 6)
+	{
+		printf("EmptyBuckets() test after 6 inserts passed \n");
+	}
+	else
+	{
+		printf("EmptyBuckets() test after 6 inserts FAILED!!! \n");
+	}
+
+	insertMap(hashTable, seventhWord, 1);
+	insertMap(hashTable, eightWord, 1);
+	insertMap(hashTable, ninthWord, 1);
+
+	if (emptyBuckets(hashTable) == 17)
+	{
+		printf("EmptyBuckets() test after 9 inserts passed \n");
+	}
+	else
+	{
+		printf("EmptyBuckets() test after 9 inserts FAILED!!! \n");
+	}
+
+	deleteMap(hashTable);
+}
+
+void testHashTableLoad()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "saw";
+	char *fourthWord = "the";
+	char *fifthWord = "valley";
+	char *sixthWord = "sun";
+	char *seventhWord = "bun";
+	char *eightWord = "fun";
+	char *ninthWord = "run";
+
+	insertMap(hashTable, firstWord, 1);
+	printf("Table load after add 1: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, secondWord, 1);
+	printf("Table load after add 2: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, thirdWord, 1);
+	printf("Table load after add 3: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, fourthWord, 1);
+	printf("Table load after add 4: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, fifthWord, 1);
+	printf("Table load after add 5: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, sixthWord, 1);
+	printf("Table load after add 6: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, seventhWord, 1);
+	printf("Table load after add 7: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, eightWord, 1);
+	printf("Table load after add 8: %f \n", tableLoad(hashTable));
+	insertMap(hashTable, ninthWord, 1);
+	printf("Table load after add 9(after table resize): %f \n", tableLoad(hashTable));
+
+	deleteMap(hashTable);
+}
+
+void testHashRemove_FromSingleLinkBuckets()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "good";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+
+	// Try removing a non-existent key
+	removeKey(hashTable, thirdWord);
+	if (size(hashTable) == 2)
+	{
+		printf("Hash table removeKey() - with nonexistent key passed \n");
+	}
+
+	// Remove 1 hash link
+	removeKey(hashTable, firstWord);
+	if ((size(hashTable) == 1) && (!containsKey(hashTable, firstWord)))
+	{
+		printf("Hash table removeKey() - remove 1 key passed \n");
+	}
+	else
+	{
+		printf("Hash table removeKey() - remove 1 key FAILED \n");
+	}
+
+	// Remove 1 hash link
+	removeKey(hashTable, secondWord);
+	if ((size(hashTable) == 0) && (!containsKey(hashTable, secondWord)))
+	{
+		printf("Hash table removeKey() - remove 2 key passed \n");
+	}
+	else
+	{
+		printf("Hash table removeKey() - remove 2 key FAILED \n");
+	}
+
+	deleteMap(hashTable);
+}
+
+void testHashRemove_FromMultiLinkBuckets()
+{
+	printf("\n");
+	struct hashMap *hashTable;
+	int tableSize = 10;
+
+	hashTable = createMap(tableSize);
+
+	char *firstWord = "hello";
+	char *secondWord = "bye";
+	char *thirdWord = "saw";
+	char *fourthWord = "the";
+	char *fifthWord = "valley";
+	char *sixthWord = "sun";
+	char *seventhWord = "bun";
+	char *eightWord = "fun";
+
+	insertMap(hashTable, firstWord, 1);
+	insertMap(hashTable, secondWord, 1);
+	insertMap(hashTable, thirdWord, 1);
+	insertMap(hashTable, fourthWord, 1);
+	insertMap(hashTable, fifthWord, 1);
+	insertMap(hashTable, sixthWord, 1);
+	insertMap(hashTable, seventhWord, 1);
+	insertMap(hashTable, eightWord, 1);
+
+	// Removing from a bucket with multiple hash links
+	removeKey(hashTable, fifthWord);
+
+	if (size(hashTable) == 7)
+	{
+		printf("Hash table removeKey() - with multiple items in 1 bucket - size check passed \n");
+	}
+	else
+	{
+		printf("Hash table removeKey() - with multiple items in 1 bucket - size check FAILED!!!	 \n");
+	}
+
+	if (!containsKey(hashTable, fifthWord))
+	{
+		printf("Hash table removeKey() - with multiple items in 1 bucket - contains check passed \n");
+	}
+	else
+	{
+		printf("Hash table removeKey() - with multiple items in 1 bucket - contains check FAILED!!!	 \n");
+	}
+
+	deleteMap(hashTable);
 }
