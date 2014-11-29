@@ -389,7 +389,7 @@ void removeKey (struct hashMap * ht, KeyType k)
 	// Check if key exists in hash table
 	if (!containsKey(ht, k))
 	{
-		printf("Warning: key: %s, was not found for removal \n");
+		printf("Warning: key: %s, was not found for removal \n", k);
 		return;
 	}
 
