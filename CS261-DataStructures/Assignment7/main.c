@@ -3,6 +3,9 @@
 
 int main () 
 {
+	/* Fix for display problem in Eclipse IDE */
+	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
 	/* change this number to generate different graphs */
 	int graphTestNumber = 3; /* permissible values are 1-5 */
 	/* switch this to 0 to use BFS */
