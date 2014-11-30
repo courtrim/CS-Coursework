@@ -11,7 +11,7 @@
  hashing functions that your code uses. you are not required to use this value
  though.
  */
-# define HASHING_FUNCTION 1
+# define HASHING_FUNCTION 2
 
 # define LOAD_FACTOR_THRESHOLD 0.75
 

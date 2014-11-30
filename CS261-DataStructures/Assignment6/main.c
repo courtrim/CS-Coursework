@@ -15,6 +15,8 @@
  to free this memory when you no longer need it.
  */
 char* getWord(FILE *file);
+
+// Test hash functions
 void testHash();
 void testHashContains();
 void testHashInsert_WithPreExistingKey();
@@ -30,15 +32,15 @@ void testHashRemove_FromMultiLinkBuckets();
  * */
 
 int main (int argc, const char * argv[]) {
-	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+	setvbuf(stdout, NULL, _IONBF, BUFSIZ); // Fixes the output for Eclipse IDE
 	const char* filename;
 	struct hashMap *hashTable;
 	int tableSize = 10;
 	clock_t timer;
 	FILE *fileptr;
 
-	//KEVIN test code
-//	testHash();
+	// Uncomment to run hash table test code
+	testHash();
 
     /*
      this part is using command line arguments, you can use them if you wish
@@ -51,7 +53,7 @@ int main (int argc, const char * argv[]) {
     if(argc == 2)
         filename = argv[1];
     else
-        filename = "input3.txt"; /*specify your input text file here*/
+        filename = "input1.txt"; /*specify your input text file here*/
 
     printf("opening file: %s\n", filename);
 
@@ -67,20 +69,23 @@ int main (int argc, const char * argv[]) {
 	curWord = getWord(fileptr);
 	int existingValueToIncrement;
 
+	// Add each word to the hash map
 	while(curWord != 0)
 	{
-
 		if (!containsKey(hashTable, curWord))
 		{
+			// Key value does not exist in the hash map. Add it.
 			insertMap(hashTable, curWord, 1);
 		}
 		else
 		{
+			// Key value exists in the hash map. Increment the value at the key
 			existingValueToIncrement = (int)atMap(hashTable, curWord);
 			existingValueToIncrement++;
 			insertMap(hashTable, curWord, existingValueToIncrement);
 		}
 
+		// Get the next word in the input file
 		curWord = getWord(fileptr);
 	}
 	fclose(fileptr);
@@ -147,19 +152,10 @@ char* getWord(FILE *file)
 	return word;
 }
 
+// Main test runner for all the hash map tests
 void testHash()
 {
 	printf("Running test hash...\n");
-	struct hashMap *hashTable;
-	int tableSize = 10;
-
-	hashTable = createMap(tableSize);
-
-	char *firstWord = "hello";
-	char *secondWord = "hello";
-
-	insertMap(hashTable, firstWord, 1);
-	insertMap(hashTable, secondWord, 1);
 
 	// Run Tests
 	testHashContains();
@@ -173,6 +169,7 @@ void testHash()
 	printf("\nEnding test hash...\n");
 }
 
+// Tests the hash map contains function
 void testHashContains()
 {
 	printf("\n");
@@ -217,6 +214,7 @@ void testHashContains()
 	deleteMap(hashTable);
 }
 
+// Tests the hash map insert function when trying to insert to maps with pre-existing keys
 void testHashInsert_WithPreExistingKey()
 {
 	printf("\n");
@@ -246,6 +244,7 @@ void testHashInsert_WithPreExistingKey()
 	deleteMap(hashTable);
 }
 
+// Tests that hash map insert function increments the hash map count correctly
 void testHashInsert_IncrementsCount()
 {
 	printf("\n");
@@ -274,6 +273,7 @@ void testHashInsert_IncrementsCount()
 	deleteMap(hashTable);
 }
 
+// Tests that hash map insert function resizes the hash table correctly when the hash load is reached
 void testHashInsert_ResizeHashTable()
 {
 	printf("\n");
@@ -405,6 +405,7 @@ void testHashInsert_ResizeHashTable()
 	deleteMap(hashTable);
 }
 
+// Tests the hash map EmptyBuckets function
 void testHashEmptyBuckets()
 {
 	printf("\n");
@@ -433,7 +434,7 @@ void testHashEmptyBuckets()
 	}
 	else
 	{
-		printf("EmptyBuckets() test after 3 inserts FAILED!!! \n");
+		printf("EmptyBuckets() test after 3 inserts FAILED!!! (Test could fail because of different hashing functions)\n");
 	}
 
 	insertMap(hashTable, fourthWord, 1);
@@ -446,7 +447,7 @@ void testHashEmptyBuckets()
 	}
 	else
 	{
-		printf("EmptyBuckets() test after 6 inserts FAILED!!! \n");
+		printf("EmptyBuckets() test after 6 inserts FAILED!!! (Test could fail because of different hashing functions)\n");
 	}
 
 	insertMap(hashTable, seventhWord, 1);
@@ -459,12 +460,13 @@ void testHashEmptyBuckets()
 	}
 	else
 	{
-		printf("EmptyBuckets() test after 9 inserts FAILED!!! \n");
+		printf("EmptyBuckets() test after 9 inserts FAILED!!! (Test could fail because of different hashing functions)\n");
 	}
 
 	deleteMap(hashTable);
 }
 
+// Tests the hash map tableLoad function
 void testHashTableLoad()
 {
 	printf("\n");
@@ -505,6 +507,7 @@ void testHashTableLoad()
 	deleteMap(hashTable);
 }
 
+// Tests the hash map remove function when removing from single item buckets
 void testHashRemove_FromSingleLinkBuckets()
 {
 	printf("\n");
@@ -552,6 +555,7 @@ void testHashRemove_FromSingleLinkBuckets()
 	deleteMap(hashTable);
 }
 
+// Tests the hash map remove function when removing from multi item buckets
 void testHashRemove_FromMultiLinkBuckets()
 {
 	printf("\n");
