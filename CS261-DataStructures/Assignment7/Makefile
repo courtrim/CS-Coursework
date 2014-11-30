@@ -1,4 +1,4 @@
-default: prog 
+default all: prog 
 
 cirListDeque.o: cirListDeque.h cirListDeque.c
 	gcc -Wall -ansi -c cirListDeque.c
