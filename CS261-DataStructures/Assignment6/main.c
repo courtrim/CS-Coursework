@@ -27,10 +27,6 @@ void testHashTableLoad();
 void testHashRemove_FromSingleLinkBuckets();
 void testHashRemove_FromMultiLinkBuckets();
 
-/*FIXME
- * Changed value type for atMap(). mention at turn in
- * */
-
 int main (int argc, const char * argv[]) {
 	setvbuf(stdout, NULL, _IONBF, BUFSIZ); // Fixes the output for Eclipse IDE
 	const char* filename;
@@ -40,7 +36,7 @@ int main (int argc, const char * argv[]) {
 	FILE *fileptr;
 
 	// Uncomment to run hash table test code
-	testHash();
+	// testHash();
 
     /*
      this part is using command line arguments, you can use them if you wish

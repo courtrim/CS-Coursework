@@ -1,1 +1,46 @@
-Wr
+Assignment 6 Written Question Answers:
+
+1. For this question I am going to use the words in "input1.txt". 
+	Two words that hash to the same bucket using stringHash1(), but not
+	stringHash2() are: "blistering" and "bed"
+	
+2. Based on question 1, stringHash2() is superior to stringHash1()
+   because there are less key-value hash links in each hash bucket.
+   Having fewer items in each hash bucket gives us faster performance
+   because less time is spent iterating through the bucket to find 
+   the right key.
+
+3. When using the stringHash1() versus the stringHash2() function,
+	it is not possible for the size() function to return different
+	values. This is because the same amount of hash links will be 
+	added based on the number of unique hash keys. The hash functions
+	determine the distribution of the keys.
+
+4. When using the stringHash1() versus the stringHash2() function,
+	it is not possible for the tableLoad() function to return different
+	values. The tableLoad() function is (number of hash links) / (number of buckets).
+	It does not matter whether we use stringHash1() or stringHash2(), 
+	the number of hash links and buckets will be the same.
+
+5. When using the stringHash1() versus the stringHash2() function,
+	it is possible for the emptyBuckets() function to return different
+	values. Using different hash functions will cause different distributions
+	of hash keys in the hash map. The better hash function will have a lower
+	amount of empty buckets and therefore a better distribution of keys.
+
+6. When you change table size from an even number to a prime number, there
+	will be a difference in empty buckets. The calculation of the hash 
+	table index will be affected by the table size. This will cause a 
+	change in the distribution of key-value pairs. 
+
+7. Here are the data points for three different table sizes:
+	Table size: 10, Running time: 0.004000 second
+	Table size: 97, Running time: 0.004000 seconds
+	Table size: 1597, Running time: 0.043000
+	NOTE: These tests were run on my local development environment. When
+		  attempting to run tests on the FLIP server all the times were at
+		  0 seconds.
+	Answer: When we increase the hash table size, the performance decreases. 
+			Looking at the data, we can see that the code takes longer to
+			execute at bigger table sizes. This could be due to the table 
+			resizing.
