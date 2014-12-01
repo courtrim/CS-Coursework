@@ -24,14 +24,47 @@ MAX_NUM_TOGENERATE = 200 ; Represents max amount of numbers to generate
 MIN_NUM_TOGENERATE = 10 ; Represents min amount of numbers to generate
 RAN_LOWER_LIMIT = 100 ; Represents the random number lower limit
 RAN_UPPER_LIMIT = 999 ; Represents the random number upper limit
+MAX_STRING_INPUT = 100 ; Represents the max size of string to be entered
 
 ; MACRO Definitions
+; ---------------------------------------------------------
+; Macro to display a string
+; receives: displayStringAddr - the variable holding the 
+;								string to display
+; returns: n/a 
+; preconditions: n/a
+; registers changed: n/a
+; ---------------------------------------------------------
 displayString MACRO displayStringAddr
 	push 	edx
 	mov 	edx, OFFSET displayStringAddr
 	call 	writestring
-	call		CrLf
+	call	CrLf
 	pop 	edx
+endm
+
+; ---------------------------------------------------------
+; Macro to get user string input 
+; receives: promptMsg - the input message to display to the 
+;						user
+;			addrToPutString - the variable to store user input
+; returns: n/a 
+; preconditions: n/a
+; registers changed: n/a
+; ---------------------------------------------------------
+getString MACRO promptMsg, addrToPutString
+	push	edx
+	push 	ecx
+
+	mov		edx, OFFSET promptMsg
+	call	WriteString ; Output the user input message
+
+	mov 	edx, OFFSET addrToPutString ; Specifies where to put the user input in memory
+	mov 	ecx, MAX_STRING_INPUT ; Specifies how many characters will be read from the user input
+	call 	ReadString ; Get user input
+
+	pop 	ecx
+	pop		edx
 endm
 
 .data
@@ -41,7 +74,7 @@ instruct_msg1			BYTE	"Please provide 10 unsigned decimal integers.", 0
 instruct_msg2			BYTE	"Each number needs to be small enough to fit inside a 32 bit register.", 0
 instruct_msg3			BYTE	"After you have finished inputting the raw numbers I will display a list", 0
 instruct_msg4			BYTE	"of the integers, their sum, and their average value.", 0
-input_msg				BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
+input_msg				BYTE	"Please enter an unsigned number: ", 0
 err_OverLimit_msg		BYTE	"Out of Range. Try again.", 0
 three_spaces 			BYTE 	"   ", 0 ; Contains a string with three spaces
 unsort_display_msg		BYTE	"The unsorted random numbers:", 0
@@ -56,6 +89,8 @@ exit_msg				BYTE	"Thanks for playing!", 0
 num_to_generate			DWORD	10
 unsorted_array			DWORD	MAX_NUM_TOGENERATE DUP(0)
 
+testGetStringValue		BYTE 	MAX_STRING_INPUT+1 DUP(?)
+
 .code
 main PROC
 	; ------------Program Introduction Section----------
@@ -63,8 +98,20 @@ main PROC
 	call	displayInstructions
 
 	; ------------Get User Data Section-----------------
+	getString input_msg, testGetStringValue ; macro
+	displayString testGetStringValue ; macro
 	;push	OFFSET num_to_generate
 	;call	getUserNumberInput
+
+	; TODO 
+	; 1. write the readVal function
+	; 2. write the writeVal function
+	; 3. write test program to get 10 int from user
+	;	3a. Store each int in an array
+	;	3b. Display each integer
+	;	3c. Diplay their sum
+	;	3d. Diplay their average
+
 
 	; ------------Fill Array section--------------------
 	;push 	num_to_generate
