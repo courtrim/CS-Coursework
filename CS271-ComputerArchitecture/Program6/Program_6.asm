@@ -86,22 +86,21 @@ right_paren_display		BYTE	")", 0
 left_paren_display		BYTE	"(", 0
 exit_msg				BYTE	"Thanks for playing!", 0
 
-num_to_generate			DWORD	10
+num_of_inputs			DWORD	10 ; Number of integers the user needs to input 
 unsorted_array			DWORD	MAX_NUM_TOGENERATE DUP(0)
 
-testGetStringValue		BYTE 	MAX_STRING_INPUT+1 DUP(?)
+stringInputValue		BYTE 	MAX_STRING_INPUT+1 DUP(?)
 
-.code
+ .code
 main PROC
 	; ------------Program Introduction Section----------
 	call	introduceProgram
 	call	displayInstructions
 
 	; ------------Get User Data Section-----------------
-	getString input_msg, testGetStringValue ; macro
-	displayString testGetStringValue ; macro
-	;push	OFFSET num_to_generate
-	;call	getUserNumberInput
+	push	num_of_inputs
+	push 	OFFSET unsorted_array
+	call	getUserNumberInput
 
 	; TODO 
 	; 1. write the readVal function
@@ -194,26 +193,34 @@ displayInstructions ENDP
 ; ---------------------------------------------------------
 getUserNumberInput PROC
 	pushad
-	mov		ebp, esp
+	mov 	ebp, esp
+	mov 	ecx, [ebp+40] ; Save number of elements in the array
+	mov 	esi, [ebp+36] ; Save the address of the array
 
 	StartUserNumInput:
 		; Get number from user
-		mov		edx, OFFSET input_msg
-		call	WriteString	; Asks user to input a number
-		call	ReadInt ; Gets user integer input
+		call readVal
+		;getString input_msg, stringInputValue
+		;displayString stringInputValue ; Debug tool
 
-		mov 	ecx, 0 ; validateUserNumberInput will return a value in ecx. So need to clear it now.
-		call	validateUserNumberInput
+		;mov 	ecx, 0 ; validateUserNumberInput will return a value in ecx. So need to clear it now.
+		;call	validateUserNumberInput
 
-		cmp		ecx, 1
-		je		StartUserNumInput ; if ecx is 1, then restart
-		mov		ebx, [ebp+36] ; @num_to_generate in ebx
-		mov		[ebx], eax ; Save amount of random numbers to generate
-		call	CrLf
+		;cmp		ecx, 1
+		;je		StartUserNumInput ; if ecx is 1, then restart
+		;mov		ebx, [ebp+36] ; @num_to_generate in ebx
+		;mov		[ebx], eax ; Save amount of random numbers to generate
+		;call	CrLf
 
 		popad
-		ret		4
+		ret		8
 getUserNumberInput ENDP
+
+readVal PROC
+	getString input_msg, stringInputValue
+	displayString stringInputValue ; Debug tool
+	ret
+readVal ENDP
 
 ; ---------------------------------------------------------
 ; Procedure to validate user number input
