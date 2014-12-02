@@ -1,21 +1,18 @@
-TITLE Program_6     (Program_6.asm)
+TITLE Program_5     (Program_5.asm)
 
 ; Author: Kevin To
-; Course / Project ID: CS271/Program_6                 Date: 11/30/2014
+; Course / Project ID: CS271/Program_5                 Date: 11/20/2014
 ; Description: The purpose of this program is to
 ;			   The problem definition (as given):
-;				1. Implement and test your own ReadVal and WriteVal procedures for unsigned integers.
-;				2. Implement macros getString and displayString. The macros may use Irvine’s ReadString to get input from
-;				    the user, and WriteString to display output.
-;					2a. getString should display a prompt, then get the user’s keyboard input into a memory location
-;					2b. displayString should the string stored in a specified memory location.
-;					2c. readVal should invoke the getString macro to get the user’s string of digits. It should then convert the
-;						digit string to numeric, while validating the user’s input.
-;					2d. writeVal should convert a numeric value to a string of digits, and invoke the displayString macro to
-;						produce the output.
-;				3. Write a small test program that gets 10 valid integers from the user and stores the numeric values in an
-;				    array. The program then displays the integers, their sum, and their average.
-
+;				Write and test a MASM program to perform the following tasks:
+;				1. Introduce the program.
+;				2. Get a user request in the range [min = 10 .. max = 200].
+;				3. Generate request random integers in the range [lo = 100 .. hi = 999], storing them in consecutive elements
+;					of an array.
+;				4. Display the list of integers before sorting, 10 numbers per line.
+;				5. Sort the list in descending order (i.e., largest first).
+;				6. Calculate and display the median value.
+;				7. Display the sorted list, 10 numbers per line.
 
 INCLUDE Irvine32.inc
 
@@ -24,126 +21,61 @@ MAX_NUM_TOGENERATE = 200 ; Represents max amount of numbers to generate
 MIN_NUM_TOGENERATE = 10 ; Represents min amount of numbers to generate
 RAN_LOWER_LIMIT = 100 ; Represents the random number lower limit
 RAN_UPPER_LIMIT = 999 ; Represents the random number upper limit
-MAX_STRING_INPUT = 100 ; Represents the max size of string to be entered
-
-; MACRO Definitions
-; ---------------------------------------------------------
-; Macro to display a string
-; receives: displayStringAddr - the variable holding the 
-;								string to display
-; returns: n/a 
-; preconditions: n/a
-; registers changed: n/a
-; ---------------------------------------------------------
-displayString MACRO displayStringAddr
-	push 	edx
-	mov 	edx, OFFSET displayStringAddr
-	call 	writestring
-	call	CrLf
-	pop 	edx
-endm
-
-; ---------------------------------------------------------
-; Macro to get user string input 
-; receives: promptMsg - the input message to display to the 
-;						user
-;			addrToPutString - the variable to store user input
-; returns: n/a 
-; preconditions: n/a
-; registers changed: n/a
-; ---------------------------------------------------------
-getString MACRO promptMsg, addrToPutString
-	push	edx
-	push 	ecx
-	push	eax
-
-	mov		edx, OFFSET promptMsg
-	call	WriteString ; Output the user input message
-
-	mov 	edx, OFFSET addrToPutString ; Specifies where to put the user input in memory
-	mov 	ecx, MAX_STRING_INPUT ; Specifies how many characters will be read from the user input
-	call 	ReadString ; Get user input
-
-	pop		eax
-	pop 	ecx
-	pop		edx
-endm
 
 .data
-intro_1					BYTE	"PROGRAMMING ASSIGNMENT 6: Designing low-level I/O procedures", 0
-intro_2					BYTE	"Written by: Kevin To", 0
-instruct_msg1			BYTE	"Please provide 10 unsigned decimal integers.", 0
-instruct_msg2			BYTE	"Each number needs to be small enough to fit inside a 32 bit register.", 0
-instruct_msg3			BYTE	"After you have finished inputting the raw numbers I will display a list", 0
-instruct_msg4			BYTE	"of the integers, their sum, and their average value.", 0
-input_msg				BYTE	"Please enter an unsigned number: ", 0
-retry_input_msg			BYTE	"Please try again: ", 0
+intro_1					BYTE	"Sorting Random Numbers		Programmed by Kevin To ", 0
+instruct_msg1			BYTE	"This program generates random numbers in the range [100 .. 999],", 0
+instruct_msg2			BYTE	"displays the original list, sorts the list, and calculates the ", 0
+instruct_msg3			BYTE	"median value. Finally, it displays the list sorted in descending order.", 0
+input_msg				BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
 err_OverLimit_msg		BYTE	"Out of Range. Try again.", 0
-array_display_delimiter	BYTE 	", ", 0 ; Comma delimiter that goes between different array elements 
+three_spaces 			BYTE 	"   ", 0 ; Contains a string with three spaces
 unsort_display_msg		BYTE	"The unsorted random numbers:", 0
-array_display_msg		BYTE	"You entered the following numbers: ", 0
+sorted_display_msg		BYTE	"The sorted list:", 0
 median_display_msg		BYTE	"The median is ", 0
 period_msg				BYTE	".", 0
 half_num_string			BYTE	".5", 0
 right_paren_display		BYTE	")", 0
 left_paren_display		BYTE	"(", 0
-exit_msg				BYTE	"Thanks for playing!", 0
+exit_msg				BYTE	"Results certified by Kevin To. Goodbye.", 0
 
-num_of_inputs			DWORD	10 ; Number of integers the user needs to input 
+num_to_generate			DWORD	10
 unsorted_array			DWORD	MAX_NUM_TOGENERATE DUP(0)
 
-input_before_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input before validation
-input_after_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input after validation
-integer_result			DWORD	0 ; Holds the integer value after conversion from a string
-
-invalid_input_msg		BYTE	"ERROR: You did not enter an unsigned number or your number was too big.", 0
-
- .code
+.code
 main PROC
 	; ------------Program Introduction Section----------
 	call	introduceProgram
 	call	displayInstructions
 
 	; ------------Get User Data Section-----------------
-	push	num_of_inputs
-	push 	OFFSET unsorted_array
+	push	OFFSET num_to_generate
 	call	getUserNumberInput
 
-	; TODO 
-	; 1. write the readVal function
-	; 2. write the writeVal function
-	; 3. write test program to get 10 int from user
-	;	3a. Store each int in an array
-	;	3b. Display each integer
-	;	3c. Diplay their sum
-	;	3d. Diplay their average
-
-
 	; ------------Fill Array section--------------------
-	;push 	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call 	fillArray ; Fill array with random values
+	push 	num_to_generate
+	push 	OFFSET unsorted_array
+	call 	fillArray ; Fill array with random values
 
-	;call	DisplayUnsortedArrayMsg ; Display unsorted array msg
-	;push	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call 	displayArray ; Display the unsorted array
+	call	DisplayUnsortedArrayMsg ; Display unsorted array msg
+	push	num_to_generate
+	push 	OFFSET unsorted_array
+	call 	displayArray ; Display the unsorted array
 
 	; ------------Sort Array section--------------------
-	;push	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call	sortArray ; Sort the unsorted array in descending order
+	push	num_to_generate
+	push 	OFFSET unsorted_array
+	call	sortArray ; Sort the unsorted array in descending order
 
 	; ------------Calculate and Display Median section--------------------
 	; Note: Displaying the median requires that the array be sorted first.
-	;push	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call DisplayMedian
+	push	num_to_generate
+	push 	OFFSET unsorted_array
+	call DisplayMedian
 
-	; ------------Display Array section--------------------
-	call 	CrLf
-	displayString array_display_msg ; Display "show array" starting message
-	push	num_of_inputs
+	; ------------Display Sorted Array section--------------------
+	call	DisplaySortedArrayMsg ; Display sorted array msg
+	push	num_to_generate
 	push 	OFFSET unsorted_array
 	call 	displayArray ; Display the sorted array
 
@@ -161,12 +93,11 @@ main ENDP
 ; preconditions: n/a
 ; registers changed: n/a
 ; ---------------------------------------------------------
-introduceProgram PROC
-	; Display title
-	displayString intro_1
-
-	; Display programmer name
-	displayString intro_2
+introduceProgram PROC USES edx
+	; Display title and author name
+	mov		edx, OFFSET intro_1
+	call	WriteString	; Outputs the title
+	call	CrLf
 
 	ret
 introduceProgram ENDP
@@ -179,13 +110,16 @@ introduceProgram ENDP
 ; preconditions: n/a
 ; registers changed: n/a
 ; ---------------------------------------------------------
-displayInstructions PROC
+displayInstructions PROC USES edx
 	; Display program instructions
+	mov		edx, OFFSET instruct_msg1
+	call	WriteString ; Displays first part of the instructions
 	call	CrLf
-	displayString instruct_msg1
-	displayString instruct_msg2
-	displayString instruct_msg3
-	displayString instruct_msg4
+	mov		edx, OFFSET instruct_msg2
+	call	WriteString ; Displays the second part of the instructions
+	call	CrLf
+	mov		edx, OFFSET instruct_msg3
+	call	WriteString ; Displays the third part of the instructions
 	call	CrLf
 	call	CrLf
 
@@ -201,136 +135,26 @@ displayInstructions ENDP
 ; ---------------------------------------------------------
 getUserNumberInput PROC
 	pushad
-	mov 	ebp, esp
-	mov 	ecx, [ebp+40] ; Save number of elements in the array
-	mov 	esi, [ebp+36] ; Save the address of the array
+	mov		ebp, esp
 
 	StartUserNumInput:
 		; Get number from user
-		call readVal
-		;mov 	ebx, [eax]
-		;mov 	[esi], ebx
-		;add 	esi, 4
-		loop StartUserNumInput
+		mov		edx, OFFSET input_msg
+		call	WriteString	; Asks user to input a number
+		call	ReadInt ; Gets user integer input
+
+		mov 	ecx, 0 ; validateUserNumberInput will return a value in ecx. So need to clear it now.
+		call	validateUserNumberInput
+
+		cmp		ecx, 1
+		je		StartUserNumInput ; if ecx is 1, then restart
+		mov		ebx, [ebp+36] ; @num_to_generate in ebx
+		mov		[ebx], eax ; Save amount of random numbers to generate
+		call	CrLf
 
 		popad
-		ret		8
+		ret		4
 getUserNumberInput ENDP
-
-; ---------------------------------------------------------
-; Procedure to get user string input and convert to a number
-; receives: n/a
-; returns: Modifies num_primes_toDisplay
-; preconditions: n/a
-; registers changed: n/a
-; ---------------------------------------------------------
-readVal PROC
-	pushad
-
- 	mov eax, 0 ; Clear eax
-
-	getString input_msg, input_before_validate ; Get user string
-	jmp		beginNormalRead
-
-	invalidNumEnteredAskUserAgain:
-		mov 	ecx, 0
-
-		; Make a call to clear source array
-		push 	TYPE input_before_validate
-		push 	LENGTHOF input_before_validate
-		push 	OFFSET input_before_validate
-		call 	clearAllElemenetsInArray ; Clear source array
-		
-		; Make a call to clear destination array
-		push 	TYPE input_after_validate 
-		push 	LENGTHOF input_after_validate
-		push 	OFFSET input_after_validate 
-		call 	clearAllElemenetsInArray ; Clear destination array
-
-		displayString invalid_input_msg ; Display error message
-		getString retry_input_msg, input_before_validate ; Ask for user input again
-
-	beginNormalRead:
-	 	mov 	esi, OFFSET input_before_validate ; source after validation
-	 	mov 	edi, OFFSET input_after_validate ; destination after validation 
-	 	mov 	ecx, LENGTHOF input_before_validate ; Keep track of how many elements to loop through
-
-	; TODO
- 	; 1. Validate each character to ensure that it is a number by checking the ascii value - DONE 
- 	; 	1a. need to clear output array and input array - DONE
- 	; 2. Create method convert string array into an integer
- 	; 	2a. Create a method to find out how many characters there are in an unvalidated string input
-	; 3. Parameterize 
-	; 	3a. Add a parameter to readVal to hold the source array 
-	; 	3b. Add a parameter to readVal to hold the destination array 
-	; 	3c. Add a parameter to readVal to hold the final integer value 
-	; 	3d. Add a parameter to readVal to hold the input message 
-	; 	3e. Add a parameter to readVal to hold the input ERROR message 
- 	; 4. Make sure to validate for over 32 bytes of user input
-
- 	; Algorithm for converting a string to an integer:
- 	; 1. Prepare your output variable (may be a register, of course), initialize it to 0.
-	; 2. Multiply your result by 10 ("prepare space" for the comming digit).
-	; 3. Take the first digit (from the left, the most significant digit in your future integer) from your input and substract 48 from it ('0' in ASCII is 48, search for an ASCII table if this seems unclear).
-	; 4. Add the value you got (digit - 48) to your result.
-	; 5.Repeat [2, 3, 4] for all the signs in your input, from left (most significant digit) to right (least significant digit).
-
- 	cld
- 	readValLoop: LODSB ; Moves byte at [esi] into the AL 
-
-		; Stop loading if we hit a null terminating character, 0
-		cmp		al, 0
-		je		readValLoopDone ; If we hit a null character, then exit loop
-
- 		; Check to see if character entered is valid
-		sub 	al, 48 ; Subtract the ascii byte by 48 to get the integer
-		cmp		al, 0 ; Compare integer entered to 0
-		jl		invalidNumEnteredAskUserAgain ; If AL is less then 0, then it is not a valid number, ask user to enter number again
-		cmp		al, 9 ; Compare integer entered to 0
-		jg		invalidNumEnteredAskUserAgain ; If AL is greater then 9, then it is not a valid number, ask user to enter number again
-
-		STOSB ; Moves byte in the AL register to memory at [edi]
-
- 		loop 	readValLoop
-		
- 	readValLoopDone:
-		mov 	ecx, 0
-
-	popad
-	ret
-readVal ENDP
-
-convertStringIntArrayToIntegerValue PROC
-	ret
-convertStringIntArrayToIntegerValue ENDP 
-
-; ---------------------------------------------------------
-; Procedure clears array by filling it with null terminating characters. 
-; receives: 3 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is number of elements
-;			in the array. The third parameter is the type size of the element.
-; returns: n/a
-; preconditions: parameters must be in the stack
-; registers changed: n/a
-; ---------------------------------------------------------
-clearAllElemenetsInArray PROC
-	pushad
-	mov 	ebp, esp
-	mov 	esi, [ebp+36]; Get offset of the array
-	mov 	ecx, [ebp+40] ; Get the number of elements in the array
-	mov 	ebx, [ebp+44] ; Get the size of each array element
-	mov 	eax, 0 ; Null terminating character to put into each element position
-
-	startArrayClearLoop:
-		mov 	[esi], eax ; Replace current element with zero
-		add 	esi, ebx ; Increment to next element
-		loop 	startArrayClearLoop 
-
-	endArrayClearLoop:
-
-	popad
-	ret 12 
-clearAllElemenetsInArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure to validate user number input
@@ -364,7 +188,7 @@ validateUserNumberInput PROC USES eax edx
 validateUserNumberInput ENDP
 
 ; ---------------------------------------------------------
-; Procedure to display the beginning msg for the unsorted array
+; Procedure to display the beginning msg for the unsorted array  
 ; receives: unsort_display_msg as the display message
 ; returns: nothing
 ; preconditions: n/a
@@ -375,7 +199,7 @@ DisplayUnsortedArrayMsg PROC USES edx
 	call 	writestring ; Displays the unsorted array message
 	call 	CrLf
 	ret
-DisplayUnsortedArrayMsg ENDP
+DisplayUnsortedArrayMsg ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure fills an array with random numbers
@@ -396,17 +220,17 @@ fillArray PROC
 	; NOTE: This sequence to generate a random number based on a range calculation
 	;		of (hi limit - lo limit + 1) was taken from the lecture 20 exercise.
 	call Randomize
-
+	
 	mov		eax, RAN_UPPER_LIMIT ; Put random number upper limit into eax
 	sub 	eax, RAN_LOWER_LIMIT ; Subtract lower limit by upper limit
 	inc 	eax ; Increment eax to get range
-
+	
 	repeatFillArray:
 		call 	RandomRange
 		add 	eax, RAN_LOWER_LIMIT ; Add random number by lower limit to get final random number
-
+		
 		mov 	[esi], eax
-		add 	esi, 4
+		add 	esi, 4 
 		loop 	repeatFillArray
 
 	popad
@@ -426,34 +250,30 @@ displayArray PROC
 	pushad
 
 	mov 	ebp, esp
-	mov 	ecx, [ebp+40] ; Save number of elements in the array for looping
-	;mov 	ebx, [ebp+40] ; Save number of elements in the array for keeping track of how many delimiters to add
+	mov 	ecx, [ebp+40] ; Save number of elements in the array
 	mov 	esi, [ebp+36] ; Save the address of the array
+	mov 	ebx, 0 ; Keep track of how many elements we are displaying 
 
 	displayNextElement:
-
+		
 		mov 	eax, [esi]
 		call 	writedec ; Write out the current element
 		add 	esi, 4
 
-		; Check if we are at the last element to Display
-		;	If we are at the last element, then do not add a delimiter at the end
-		mov 	ebx, 1
-		cmp 	ebx, ecx
-		je 		skipLastDelimiterAdd ; If we are at the last element, skip to the end
-
-		mov		edx, OFFSET array_display_delimiter 
+		mov		edx, OFFSET three_spaces
 		call 	writestring ; Add three spaces after the displayed number
-
-	skipLastDelimiterAdd:
+		
+		; Go to new line if there is 10 elements on the current line
+		inc 	ebx
+		push 	ebx
+		call 	AppendNewLine ;
 		loop 	displayNextElement
 
 		call	CrLf
 		call	CrLf
-
 	popad
-	ret 8
-displayArray ENDP
+	ret 8 
+displayArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure starts a new line if there are
@@ -483,7 +303,21 @@ AppendNewLine PROC
 AppendNewLine ENDP
 
 ; ---------------------------------------------------------
-; Procedure Displays the median number of a sorted array.
+; Procedure to display the beginning msg for the sorted array  
+; receives: sort_display_msg as the display message
+; returns: nothing
+; preconditions: n/a
+; registers changed: n/a
+; ---------------------------------------------------------
+DisplaySortedArrayMsg PROC USES edx
+	mov 	edx, OFFSET sorted_display_msg
+	call 	writestring ; Displays the unsorted array message
+	call 	CrLf
+	ret
+DisplaySortedArrayMsg ENDP 
+
+; ---------------------------------------------------------
+; Procedure Displays the median number of a sorted array. 
 ; receives: 2 parameters on the stack. The topmost parameter is address
 ;			of the array. The second parameter is number of elements
 ;			in the array
@@ -501,9 +335,9 @@ DisplayMedian PROC
 	; Display the median message
 	mov 	edx, OFFSET median_display_msg
 	call 	writestring ; Displays the median message
-
+	
 	; Display the left parenthesis
-	mov		edx, OFFSET left_paren_display
+	mov		edx, OFFSET left_paren_display 
 	call 	writestring	; Displays "("
 
 	; if odd number of elements find the middle number
@@ -521,7 +355,7 @@ DisplayMedian PROC
 	call 	DisplayMedianOfEvenArray
 	jmp 	ExitDisplayMedian
 
-	DisplayMedOddArray:
+	DisplayMedOddArray: 
 		push 	eax ; push the position of the right middle number onto the stack
 		push 	esi ; push array address onto the stack
 		call 	DisplayMedianOfOddArray
@@ -530,14 +364,14 @@ DisplayMedian PROC
 
 	ExitDisplayMedian:
 		; Display the right parenthesis
-		mov		edx, OFFSET right_paren_display
-		call 	writestring ; Displays ")"
+		mov		edx, OFFSET right_paren_display 
+		call 	writestring ; Displays ")"	
 
 		mov 	edx, OFFSET period_msg
 		call 	writestring ; Displays the period at the end of the message
 
-	call CrLf
-	call CrLf
+	call CrLf	
+	call CrLf	
 	popad
 	ret 8
 DisplayMedian ENDP
@@ -558,23 +392,23 @@ DisplayMedianOfEvenArray PROC
 	mov 	esi, [ebp+36] ; save sorted array address
 
 	; Put the left middle position into ebx
-	mov 	ebx, ecx
-	dec 	ebx
+	mov 	ebx, ecx 
+	dec 	ebx 
 
 	; Get the value at the position of the right middle number
 	mov 	eax, TYPE esi
-	mul 	ecx ; multiply size of the elements by the element position to get the real offset of the right middle number
+	mul 	ecx ; multiply size of the elements by the element position to get the real offset of the right middle number 
 	mov 	ecx, [esi+eax] ; Get the right middle number and put into ecx
 
 	; Get the value at the position of the left middle number
 	mov 	eax, TYPE esi
-	mul 	ebx ; multiply size of the elements by the element position to get the real offset of the left middle number
+	mul 	ebx ; multiply size of the elements by the element position to get the real offset of the left middle number 
 	mov 	eax, [esi+eax] ; Get the left middle number and put into edx
 
 	; Find the average of the two middle numbers
 	add 	eax, ecx ; add the two middle numbers and store in eax
 	mov 	ebx, 2
-	cdq
+	cdq 
 	div 	ebx ; divide eax by ebx. eax now contains the approx average
 	cmp 	edx, 1
 	je 		DisplayAverageWithDecimal ; This means we need to display a ".5" after the average because the average is not a whole number
@@ -582,7 +416,7 @@ DisplayMedianOfEvenArray PROC
 	jmp 	ExitDisplayMedEvenArray
 
 	DisplayAverageWithDecimal:
-		call 	writedec ; Display the whole number
+		call 	writedec ; Display the whole number 
 		mov 	edx, OFFSET half_num_string ; Display the half number to complete the median
 		call 	writestring
 
@@ -590,7 +424,7 @@ DisplayMedianOfEvenArray PROC
 
 	popad
 	ret 8
-DisplayMedianOfEvenArray ENDP
+DisplayMedianOfEvenArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure Displays the number at the center of an odd array. (the median)
@@ -614,7 +448,7 @@ DisplayMedianOfOddArray PROC
 
 	popad
 	ret 8
-DisplayMedianOfOddArray ENDP
+DisplayMedianOfOddArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure to sort an array in descending order
@@ -651,18 +485,18 @@ sortArray PROC
 		push 	edx ; Save the current element position as a parameter
 		push 	ebx ; Save the number of elements in the array as a parameter
 		push 	esi ; Save the address of the array as a parameter
-		call 	SwapWithHighestValueInArray; Swap the current element with
-		;									 the highest element in the rest
-		;									 of the array
+		call 	SwapWithHighestValueInArray; Swap the current element with 
+		;									 the highest element in the rest 
+		;									 of the array  
 
 		inc 	edx ; Increase outer loop counter
-		cmp 	edx, ebx
-		jl 		sortArrayOuterLoop ; If edx is less than ebx, continue the
+		cmp 	edx, ebx 
+		jl 		sortArrayOuterLoop ; If edx is less than ebx, continue the 
 		;							 loop until the end of the array
 
 	popad
-	ret 8
-sortArray ENDP
+	ret 8 
+sortArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure to swap the current element in an array with the highest element
@@ -684,18 +518,18 @@ SwapWithHighestValueInArray PROC
 	push	esi
 	push	edi
 	push	ebp
-
+	
 	; Get the parameters and setup local variables
 	mov 	ebp, esp
 	sub 	esp, 16 ; Save space for 3 local variables
 	mov 	esi, [ebp+36] ; Save the address of the array
 	mov 	ebx, [ebp+40] ; Save number of elements in the array - 1
 	inc 	ebx ; Increment ebx to get number of elements in the array = request
-	mov 	edx, [ebp+44] ; Save calling proc array index = k
+	mov 	edx, [ebp+44] ; Save calling proc array index = k 
 	mov		DWORD PTR [ebp-16], edx; save edx or k into a local variable
-	mov 	edi, edx ; this var is for i
+	mov 	edi, edx ; this var is for i	
 
-	; Note: This is the code that we are implementing. It is the contents
+	; Note: This is the code that we are implementing. It is the contents 
 	;		within the outer loop of the selection sort algorithm.
 	;	i = k
 	;	for(j=k+1; j<request; j++) {
@@ -712,27 +546,27 @@ SwapWithHighestValueInArray PROC
 		cmp		eax, ebx
 		jge		FindBigLoopEnd ; If we are outside the bounds of the array, exit
 
-		; This section will populate the local variables to hold the
+		; This section will populate the local variables to hold the 
 		; j and i indexes accounting for the double word array size.
 		mov 	DWORD PTR [ebp-4], eax ; local variable to hold (j * 4)
 		mov 	DWORD PTR [ebp-8], edi ; local variable to hold (i * 4)
 		mov 	DWORD PTR [ebp-12], eax ; local variable to hold eax
 
 		; Calculate j-index with array doubleword offset
-		mov 	eax, [ebp-4]
+		mov 	eax, [ebp-4]	
 		mov 	ecx, 4
 		mul 	ecx ; Multiply eax by ecx
 		mov 	DWORD PTR [ebp-4], eax ; Save j index with offset as a local variable
 
 		; Calculate i-index with array doubleword offset
-		mov 	eax, [ebp-8]
+		mov 	eax, [ebp-8]	
 		mov 	ecx, 4
 		mul 	ecx ; Multiply eax by ecx
 		mov 	DWORD PTR [ebp-8], eax ; Save i index with offset as a local variable
 
 		; Section for the if statement comparing array[j] to array[i]
 		mov 	eax, [ebp-4] ; Get real index of j
-		mov 	ecx, [esi+eax] ; Store value at index j in ecx
+		mov 	ecx, [esi+eax] ; Store value at index j in ecx 
 		mov 	eax, [ebp-8] ; Get real index of i
 		cmp		ecx, [esi+eax] ; Compare array[j] with array[i]
 		jle 	continueFindBigLoop ; If array[j] <= array[i], then we restart the loop
@@ -754,7 +588,7 @@ SwapWithHighestValueInArray PROC
 		call	swapNumbers
 
 	; Clean up local vars and restore the system stack
-	mov		esp, ebp
+	mov		esp, ebp 
 	pop 	ebp
 	pop	 	edi
 	pop 	esi
@@ -770,7 +604,7 @@ SwapWithHighestValueInArray ENDP
 ; Procedure that swaps array values
 ; receives: 3 parameters on the stack. The topmost parameter is address
 ;			of the array. The second parameter is the first swap position.
-;			The third parameter is the second swap position.
+;			The third parameter is the second swap position. 
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
@@ -802,7 +636,7 @@ swapNumbers PROC
 	mul		ebx; Multiply index (in eax) by 4 to directly access array element
 	mov 	[esi+eax], ecx ; Put value at the second position into the first position
 
-	; Switch value at second position with temp value
+	; Switch value at second position with temp value 
 	mov 	eax, [ebp+24] ; Get the second index for swapping
 	mov 	ebx, 4
 	mul		ebx ; Multiply index (in eax) by 4 to directly access array element
@@ -827,13 +661,16 @@ swapNumbers ENDP
 ; registers changed: n/a
 ; ---------------------------------------------------------
 farewell PROC
+	push	edx
 
 	; Outputs the exit messages
 	call	CrLf
 	call	CrLf
-	displayString exit_msg
+	mov		edx, OFFSET exit_msg
+	call	WriteString ; Displays the farwell message
 	call	CrLf
 
+	pop		edx
 	ret
 farewell ENDP
 END main
