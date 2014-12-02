@@ -55,6 +55,7 @@ endm
 getString MACRO promptMsg, addrToPutString
 	push	edx
 	push 	ecx
+	push	eax
 
 	mov		edx, OFFSET promptMsg
 	call	WriteString ; Output the user input message
@@ -63,6 +64,7 @@ getString MACRO promptMsg, addrToPutString
 	mov 	ecx, MAX_STRING_INPUT ; Specifies how many characters will be read from the user input
 	call 	ReadString ; Get user input
 
+	pop		eax
 	pop 	ecx
 	pop		edx
 endm
@@ -76,9 +78,9 @@ instruct_msg3			BYTE	"After you have finished inputting the raw numbers I will d
 instruct_msg4			BYTE	"of the integers, their sum, and their average value.", 0
 input_msg				BYTE	"Please enter an unsigned number: ", 0
 err_OverLimit_msg		BYTE	"Out of Range. Try again.", 0
-three_spaces 			BYTE 	"   ", 0 ; Contains a string with three spaces
+array_display_delimiter	BYTE 	", ", 0 ; Comma delimiter that goes between different array elements 
 unsort_display_msg		BYTE	"The unsorted random numbers:", 0
-sorted_display_msg		BYTE	"The sorted list:", 0
+array_display_msg		BYTE	"You entered the following numbers: ", 0
 median_display_msg		BYTE	"The median is ", 0
 period_msg				BYTE	".", 0
 half_num_string			BYTE	".5", 0
@@ -89,7 +91,8 @@ exit_msg				BYTE	"Thanks for playing!", 0
 num_of_inputs			DWORD	10 ; Number of integers the user needs to input 
 unsorted_array			DWORD	MAX_NUM_TOGENERATE DUP(0)
 
-stringInputValue		BYTE 	MAX_STRING_INPUT+1 DUP(?)
+input_before_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input before validation
+input_after_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input after validation
 
  .code
 main PROC
@@ -133,11 +136,12 @@ main PROC
 	;push 	OFFSET unsorted_array
 	;call DisplayMedian
 
-	; ------------Display Sorted Array section--------------------
-	;call	DisplaySortedArrayMsg ; Display sorted array msg
-	;push	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call 	displayArray ; Display the sorted array
+	; ------------Display Array section--------------------
+	call 	CrLf
+	displayString array_display_msg ; Display "show array" starting message
+	push	num_of_inputs
+	push 	OFFSET unsorted_array
+	call 	displayArray ; Display the sorted array
 
 	; ------------Farwell Section-----------------------
 	call	farewell
@@ -200,8 +204,10 @@ getUserNumberInput PROC
 	StartUserNumInput:
 		; Get number from user
 		call readVal
-		;getString input_msg, stringInputValue
-		;displayString stringInputValue ; Debug tool
+		;mov 	ebx, [eax]
+		;mov 	[esi], ebx
+		;add 	esi, 4
+		loop StartUserNumInput
 
 		;mov 	ecx, 0 ; validateUserNumberInput will return a value in ecx. So need to clear it now.
 		;call	validateUserNumberInput
@@ -216,9 +222,45 @@ getUserNumberInput PROC
 		ret		8
 getUserNumberInput ENDP
 
-readVal PROC
-	getString input_msg, stringInputValue
-	displayString stringInputValue ; Debug tool
+; ---------------------------------------------------------
+; Procedure to get user string input and convert to a number
+; receives: n/a
+; returns: Modifies num_primes_toDisplay
+; preconditions: n/a
+; registers changed: n/a
+; ---------------------------------------------------------
+readVal PROC USES ESI EDI ECX EAX EDX
+ 	mov eax, 0 ; Clear eax
+	getString input_msg, input_before_validate ; Get user string
+
+ 	cld
+ 	mov 	esi, OFFSET input_before_validate ; source after validation
+ 	mov 	edi, OFFSET input_after_validate ; destination after validation 
+ 	mov 	ecx, LENGTHOF input_before_validate
+
+	; TODO
+ 	; 1. Create a method to find out how many characters there are in an unvalidated string input
+	; 2. Add a parameter to readVal to hold the return value
+ 	; 3. Make sure to validate for over 32 bytes of user input
+ 	; 4. Validate each character to ensure that it is a number by checking the ascii value
+
+ 	; Algorithm for converting a string to an integer:
+ 	; 1. Prepare your output variable (may be a register, of course), initialize it to 0.
+	; 2. Multiply your result by 10 ("prepare space" for the comming digit).
+	; 3. Take the first digit (from the left, the most significant digit in your future integer) from your input and substract 48 from it ('0' in ASCII is 48, search for an ASCII table if this seems unclear).
+	; 4. Add the value you got (digit - 48) to your result.
+
+Repeat [2, 3, 4] for all the signs in your input, from left (most significant digit) to right (least significant digit).
+
+ 	readValLoop: LODSB ; Moves byte at [esi] into the AL 
+ 		; Do numeric validation here
+ 		STOSB ; Moves byte in the AL register to memory at [edi]
+ 		loop 	readValLoop
+
+ 		; This is debug code only
+ 		mov edx, OFFSET input_after_validate
+ 		call writestring
+
 	ret
 readVal ENDP
 
@@ -316,9 +358,9 @@ displayArray PROC
 	pushad
 
 	mov 	ebp, esp
-	mov 	ecx, [ebp+40] ; Save number of elements in the array
+	mov 	ecx, [ebp+40] ; Save number of elements in the array for looping
+	;mov 	ebx, [ebp+40] ; Save number of elements in the array for keeping track of how many delimiters to add
 	mov 	esi, [ebp+36] ; Save the address of the array
-	mov 	ebx, 0 ; Keep track of how many elements we are displaying
 
 	displayNextElement:
 
@@ -326,17 +368,21 @@ displayArray PROC
 		call 	writedec ; Write out the current element
 		add 	esi, 4
 
-		mov		edx, OFFSET three_spaces
+		; Check if we are at the last element to Display
+		;	If we are at the last element, then do not add a delimiter at the end
+		mov 	ebx, 1
+		cmp 	ebx, ecx
+		je 		skipLastDelimiterAdd ; If we are at the last element, skip to the end
+
+		mov		edx, OFFSET array_display_delimiter 
 		call 	writestring ; Add three spaces after the displayed number
 
-		; Go to new line if there is 10 elements on the current line
-		inc 	ebx
-		push 	ebx
-		call 	AppendNewLine ;
+	skipLastDelimiterAdd:
 		loop 	displayNextElement
 
 		call	CrLf
 		call	CrLf
+
 	popad
 	ret 8
 displayArray ENDP
@@ -367,20 +413,6 @@ AppendNewLine PROC
 	popad
 	ret 4
 AppendNewLine ENDP
-
-; ---------------------------------------------------------
-; Procedure to display the beginning msg for the sorted array
-; receives: sort_display_msg as the display message
-; returns: nothing
-; preconditions: n/a
-; registers changed: n/a
-; ---------------------------------------------------------
-DisplaySortedArrayMsg PROC USES edx
-	mov 	edx, OFFSET sorted_display_msg
-	call 	writestring ; Displays the unsorted array message
-	call 	CrLf
-	ret
-DisplaySortedArrayMsg ENDP
 
 ; ---------------------------------------------------------
 ; Procedure Displays the median number of a sorted array.
