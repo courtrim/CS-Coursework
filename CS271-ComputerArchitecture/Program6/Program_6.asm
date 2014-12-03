@@ -243,8 +243,17 @@ getUserNumberInput ENDP
 ; registers changed: n/a
 ; ---------------------------------------------------------
 readVal PROC
-	pushad
+	push	eax
+	push	ebx
+	push	ecx
+	push	edx
+	push	esp
+	push	esi
+	push	edi
+	push	ebp
+
 	mov		ebp, esp
+	sub 	esp, 4 ; Save space for 1 local variable
  	mov		eax, 0 ; Clear eax
 
 	getString input_msg, [ebp+44] ; Get user string
@@ -282,7 +291,8 @@ readVal PROC
  	; 	1a. need to clear output array and input array - DONE
  	; 2. Create method convert string array into an integer - DONE
  	; 	2a. Create a method to find out how many characters there are in an unvalidated string input - DONE
- 	; 	2b. FIX READ VAL RETURN
+ 	; 	2b. FIX READ VAL RETURN - DONE
+ 	; 	2c. Comment readVal
 	; 3. Parameterize 
 	; 	3a. Add a parameter to readVal to hold the source array - DONE
 	; 	3b. Add a parameter to readVal to hold the destination array - DONE
@@ -320,7 +330,6 @@ readVal PROC
  	readValLoopDone:
 		mov 	ecx, 0
 
-;!!!!!! STACK ERROR HERE --- convert edx to a local variable
 	; Convert string array into an interger
 	; Note: This the conversion algorithm for converting a string array 
 	;       holding digits into an integer. For example, a string array
@@ -333,6 +342,7 @@ readVal PROC
 	;				2b. Add element to integer result variable
 	;				2c. Decrement numberOfElementsToConvert
 	dec 	edx ; Decrement number of elements to convert by 1
+	mov		DWORD PTR [ebp-4], edx; save edx or number of elements into a local variable
 	mov 	esi, [ebp+40] ; esi holds the string array
 	mov 	edi, [ebp+36] ; edi holds the integer result variable 
 	mov		eax, 0 ; clear eax, so we can load a number into it
@@ -341,11 +351,14 @@ readVal PROC
 		mov 	ebx, 10 ; Multiplication factor	
 		mov 	ecx, edx ; Set ecx to the exponent of 10 
 
+		mov		DWORD PTR [ebp-4], edx; save edx or number of elements into a local variable
+
 		; Exit if on the ones digit
 		cmp		ecx, 0
 		je		storeNewDigit ; If we are on the ones digit, then go to the save section
 
-		push edx
+		
+
 		multiplyByTen:
 			mul 	ebx ; 10^(number of digits - 1)
 			jo		invalidNumEnteredAskUserAgain ; Jump to error section if overflow occurred
@@ -354,7 +367,8 @@ readVal PROC
 		storeNewDigit:
 			add 	[edi], eax ; Add integer generated to destination integer
 			jo		invalidNumEnteredAskUserAgain ; Jump to error section if overflow occurred
-			pop		edx ; restore the Number of elements to convert
+
+			mov 	edx, [ebp-4] ; restore the Number of elements to convert
 
 			; If saved the last digit, exit the routine
 			cmp		edx, 0 
@@ -365,8 +379,16 @@ readVal PROC
 			loop 	convertStringIntArrayToInt
 
 	exitReadVal:
-;!!!!!! STACK ERROR HERE
-	popad
+
+	mov		esp, ebp 
+	pop 	ebp
+	pop	 	edi
+	pop 	esi
+	pop 	esp
+	pop 	edx
+	pop 	ecx
+	pop 	ebx
+	pop 	eax
 	ret 20
 readVal ENDP
 
