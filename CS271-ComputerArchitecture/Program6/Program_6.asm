@@ -60,7 +60,7 @@ getString MACRO promptMsg, addrToPutString
 	mov		edx, OFFSET promptMsg
 	call	WriteString ; Output the user input message
 
-	mov 	edx, OFFSET addrToPutString ; Specifies where to put the user input in memory
+	mov 	edx, addrToPutString ; Specifies where to put the user input in memory
 	mov 	ecx, MAX_STRING_INPUT ; Specifies how many characters will be read from the user input
 	call 	ReadString ; Get user input
 
@@ -94,6 +94,8 @@ unsorted_array			DWORD	MAX_NUM_TOGENERATE DUP(0)
 
 input_before_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input before validation
 input_after_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input after validation
+input_length			DWORD	LENGTHOF input_before_validate
+input_type_size			DWORD	TYPE input_before_validate
 integer_result			DWORD	0 ; Holds the integer value after conversion from a string
 
 invalid_input_msg		BYTE	"ERROR: You did not enter an unsigned number or your number was too big.", 0
@@ -207,7 +209,13 @@ getUserNumberInput PROC
 
 	StartUserNumInput:
 		; Get number from user
-		call readVal
+		push 	input_length	
+		push 	input_type_size	
+		push	OFFSET input_before_validate
+		push	OFFSET input_after_validate
+		push	OFFSET integer_result
+		call	readVal
+
 		;mov 	ebx, [eax]
 		;mov 	[esi], ebx
 		;add 	esi, 4
@@ -219,54 +227,69 @@ getUserNumberInput ENDP
 
 ; ---------------------------------------------------------
 ; Procedure to get user string input and convert to a number
-; receives: n/a
+; receives: 5 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. The offset to hold the final integer result.
+;			2. The offset to hold the destination array. This array
+;			   holds the result after number validation.
+;			3. The offset to the the source array. This array holds
+;			   the user entered string.
+; 			4. The value that represents the size of each array element
+;			   for both arrays passed in above.
+;			5. The value that represents the number of elements in both
+;			   the arrays passed in.
 ; returns: Modifies num_primes_toDisplay
 ; preconditions: n/a
 ; registers changed: n/a
 ; ---------------------------------------------------------
 readVal PROC
 	pushad
+	mov		ebp, esp
+ 	mov		eax, 0 ; Clear eax
 
- 	mov eax, 0 ; Clear eax
-
-	getString input_msg, input_before_validate ; Get user string
+	getString input_msg, [ebp+44] ; Get user string
 	jmp		beginNormalRead
 
 	invalidNumEnteredAskUserAgain:
 		mov 	ecx, 0
+		mov		edx, 0
+		mov		eax, 0
+		mov		ebx, 0
 
 		; Make a call to clear source array
-		push 	TYPE input_before_validate
-		push 	LENGTHOF input_before_validate
-		push 	OFFSET input_before_validate
-		call 	clearAllElemenetsInArray ; Clear source array
+		push 	[ebp+48] ; Size of each element
+		push 	[ebp+52] ; Number elements in the source array
+		push 	[ebp+44] ; The source array address
+		call 	clearAllElementsInArray ; Clear source array
 		
 		; Make a call to clear destination array
-		push 	TYPE input_after_validate 
-		push 	LENGTHOF input_after_validate
-		push 	OFFSET input_after_validate 
-		call 	clearAllElemenetsInArray ; Clear destination array
+		push 	[ebp+48] ; Size of each element
+		push 	[ebp+52] ; Number elements in the destination array
+		push 	[ebp+40] ; The destination array address
+		call 	clearAllElementsInArray ; Clear destination array
 
 		displayString invalid_input_msg ; Display error message
-		getString retry_input_msg, input_before_validate ; Ask for user input again
+		getString retry_input_msg, [ebp+44]  ; Ask for user input again
 
 	beginNormalRead:
-	 	mov 	esi, OFFSET input_before_validate ; source after validation
-	 	mov 	edi, OFFSET input_after_validate ; destination after validation 
-	 	mov 	ecx, LENGTHOF input_before_validate ; Keep track of how many elements to loop through
+	 	mov 	esi, [ebp+44] ; source before validation
+	 	mov 	edi, [ebp+40] ; destination after validation 
+	 	mov 	ecx, [ebp+52] ; Keep track of how many elements to loop through
+	 	mov 	edx, 0 ; Clear edx, so it can keep track of how many digits added
 
 	; TODO
  	; 1. Validate each character to ensure that it is a number by checking the ascii value - DONE 
  	; 	1a. need to clear output array and input array - DONE
- 	; 2. Create method convert string array into an integer
- 	; 	2a. Create a method to find out how many characters there are in an unvalidated string input
+ 	; 2. Create method convert string array into an integer - DONE
+ 	; 	2a. Create a method to find out how many characters there are in an unvalidated string input - DONE
+ 	; 	2b. FIX READ VAL RETURN
 	; 3. Parameterize 
-	; 	3a. Add a parameter to readVal to hold the source array 
-	; 	3b. Add a parameter to readVal to hold the destination array 
-	; 	3c. Add a parameter to readVal to hold the final integer value 
-	; 	3d. Add a parameter to readVal to hold the input message 
-	; 	3e. Add a parameter to readVal to hold the input ERROR message 
- 	; 4. Make sure to validate for over 32 bytes of user input
+	; 	3a. Add a parameter to readVal to hold the source array - DONE
+	; 	3b. Add a parameter to readVal to hold the destination array - DONE
+	; 	3c. Add a parameter to readVal to hold the final integer value - DONE
+	; 	3d. Add a parameter to readVal to hold the input message -- Global is fine -- DONE
+	; 	3e. Add a parameter to readVal to hold the input ERROR message -- Global is fine -- DONE
+ 	; 4. Make sure to validate for over 32 bytes of user input - NEEDS TESTING
 
  	; Algorithm for converting a string to an integer:
  	; 1. Prepare your output variable (may be a register, of course), initialize it to 0.
@@ -289,20 +312,63 @@ readVal PROC
 		cmp		al, 9 ; Compare integer entered to 0
 		jg		invalidNumEnteredAskUserAgain ; If AL is greater then 9, then it is not a valid number, ask user to enter number again
 
+		inc 	edx ; Increment edx to keep track of how many digits were added
 		STOSB ; Moves byte in the AL register to memory at [edi]
 
  		loop 	readValLoop
-		
+
  	readValLoopDone:
 		mov 	ecx, 0
 
-	popad
-	ret
-readVal ENDP
+;!!!!!! STACK ERROR HERE --- convert edx to a local variable
+	; Convert string array into an interger
+	; Note: This the conversion algorithm for converting a string array 
+	;       holding digits into an integer. For example, a string array
+	;		that holds <"1", "2", "3"> will be converted to 123, which
+	;		is an integer. 
+	;			1. Store number of elements to convert into a variable
+	;			2. Starting at element position 0 of the string array
+	;			   to the last element position. 
+	;				2a. Multiply element by (10 ^ (numberOfElementsToConvert - 1))
+	;				2b. Add element to integer result variable
+	;				2c. Decrement numberOfElementsToConvert
+	dec 	edx ; Decrement number of elements to convert by 1
+	mov 	esi, [ebp+40] ; esi holds the string array
+	mov 	edi, [ebp+36] ; edi holds the integer result variable 
+	mov		eax, 0 ; clear eax, so we can load a number into it
+	cld
+	convertStringIntArrayToInt: LODSB
+		mov 	ebx, 10 ; Multiplication factor	
+		mov 	ecx, edx ; Set ecx to the exponent of 10 
 
-convertStringIntArrayToIntegerValue PROC
-	ret
-convertStringIntArrayToIntegerValue ENDP 
+		; Exit if on the ones digit
+		cmp		ecx, 0
+		je		storeNewDigit ; If we are on the ones digit, then go to the save section
+
+		push edx
+		multiplyByTen:
+			mul 	ebx ; 10^(number of digits - 1)
+			jo		invalidNumEnteredAskUserAgain ; Jump to error section if overflow occurred
+			loop 	multiplyByTen
+
+		storeNewDigit:
+			add 	[edi], eax ; Add integer generated to destination integer
+			jo		invalidNumEnteredAskUserAgain ; Jump to error section if overflow occurred
+			pop		edx ; restore the Number of elements to convert
+
+			; If saved the last digit, exit the routine
+			cmp		edx, 0 
+			je		exitReadVal
+
+			dec		edx ; decrement the Number of elements to convert
+			mov		eax, 0 ; Clear eax 
+			loop 	convertStringIntArrayToInt
+
+	exitReadVal:
+;!!!!!! STACK ERROR HERE
+	popad
+	ret 20
+readVal ENDP
 
 ; ---------------------------------------------------------
 ; Procedure clears array by filling it with null terminating characters. 
@@ -313,7 +379,7 @@ convertStringIntArrayToIntegerValue ENDP
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
 ; ---------------------------------------------------------
-clearAllElemenetsInArray PROC
+clearAllElementsInArray PROC
 	pushad
 	mov 	ebp, esp
 	mov 	esi, [ebp+36]; Get offset of the array
@@ -330,7 +396,7 @@ clearAllElemenetsInArray PROC
 
 	popad
 	ret 12 
-clearAllElemenetsInArray ENDP 
+clearAllElementsInArray ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure to validate user number input
