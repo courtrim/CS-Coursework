@@ -1,7 +1,7 @@
-TITLE Program_6     (Program_6.asm)
+TITLE Program_6a     (Program_6a.asm)
 
 ; Author: Kevin To
-; Course / Project ID: CS271/Program_6                 Date: 11/30/2014
+; Course / Project ID: CS271/Program_6a                 Date: 12/04/2014
 ; Description: The purpose of this program is to
 ;			   The problem definition (as given):
 ;				1. Implement and test your own ReadVal and WriteVal procedures for unsigned integers.
@@ -15,7 +15,6 @@ TITLE Program_6     (Program_6.asm)
 ;						produce the output.
 ;				3. Write a small test program that gets 10 valid integers from the user and stores the numeric values in an
 ;				    array. The program then displays the integers, their sum, and their average.
-
 
 INCLUDE Irvine32.inc
 
@@ -75,13 +74,10 @@ input_msg				BYTE	"Please enter an unsigned number: ", 0
 retry_input_msg			BYTE	"Please try again: ", 0
 array_display_delimiter	BYTE 	", ", 0 ; Comma delimiter that goes between different array elements 
 array_display_msg		BYTE	"You entered the following numbers: ", 0
-median_display_msg		BYTE	"The median is ", 0
-period_msg				BYTE	".", 0
-half_num_string			BYTE	".5", 0
-right_paren_display		BYTE	")", 0
-left_paren_display		BYTE	"(", 0
 exit_msg				BYTE	"Thanks for playing!", 0
 invalid_input_msg		BYTE	"ERROR: You did not enter an unsigned number or your number was too big.", 0
+sum_arr_msg				BYTE	"The sum of these numbers is: ", 0
+avg_arr_msg				BYTE	"The average is: ", 0
 
 unsorted_array			DWORD	NUM_OF_INPUTS DUP(0)
 input_before_validate	BYTE 	MAX_STRING_INPUT+1 DUP(?) ; Variable to hold user input before validation
@@ -90,6 +86,7 @@ input_length			DWORD	LENGTHOF input_before_validate
 input_type_size			DWORD	TYPE input_before_validate
 integer_result			DWORD	0 ; Holds the integer value after conversion from a string
 recursive_val_holder	BYTE 	2 DUP(?) ; Variable to hold the single character to be displayed
+sum_unsorted_array		DWORD 	0 ; Holds the sum of all the integers in an integer array
 
  .code
 main PROC
@@ -105,38 +102,44 @@ main PROC
 	call	displayInstructions ; Display the instructions
 
 	; ------------Get User Data Section-----------------
-	push	NUM_OF_INPUTS
-	push 	OFFSET unsorted_array
+	push	OFFSET integer_result ; Parameter that holds the the address to the final integer result
+	push	OFFSET input_after_validate ; Parameter that holds the the address to the destination array 
+	push	OFFSET input_before_validate ; Parameter that holds the the address to the source array 
+	push	input_type_size ; Parameter that holds the the input array element size
+	push	input_length ; Parameter that holds the the input array length
+	push	OFFSET invalid_input_msg ; Parameter that holds the invalid input message
+	push	OFFSET retry_input_msg ; Parameter that holds the retry input message
+	push	OFFSET input_msg ; Parameter that holds the input message
+	push	NUM_OF_INPUTS ; Parameter that holds the number of elements allowed to be entered into the result array
+	push 	OFFSET unsorted_array ; Parameter that holds the array to fill with user entered integers
 	call	getUserNumberInputArray
-
-	; TODO 
-	; 2. write the writeVal function
-	;	--- -COMMENT display array !!!!
-	; ------- comment writeval also!!!
-	; 3. write test program to get 10 int from user
-	;	3a. Store each int in an array
-	;	3b. Display each integer
-	;	3c. Diplay their sum
-	;	3d. Diplay their average
-
-	; ------------Calculate and Display Median section--------------------
-	; Note: Displaying the median requires that the array be sorted first.
-	;push	num_to_generate
-	;push 	OFFSET unsorted_array
-	;call DisplayMedian
-
-
 
 	; ------------Display Array section--------------------
 	call 	CrLf
 	displayString OFFSET array_display_msg ; Display "show array" starting message
 	call 	CrLf
-	push	NUM_OF_INPUTS
-	push 	OFFSET unsorted_array
+
+	push	OFFSET recursive_val_holder ; Parameter that holds the address of the string array used for display
+	push	NUM_OF_INPUTS; Parameter that holds the constant for number of inputs
+	push 	OFFSET unsorted_array; Parameter that holds the address of the array holding all the user entered variables
 	call 	displayArray ; Display the sorted array
 
+	; ------------Calculate and Display Sum of Int Array section--------------------
+	push	OFFSET sum_arr_msg ; Parameter that holds the address of the sum output message
+	push	OFFSET recursive_val_holder ; Parameter that holds the address of the string array used for display
+	push	OFFSET sum_unsorted_array; Parameter that holds the address to the sum of the integer array
+	push	NUM_OF_INPUTS; Parameter that holds the constant for number of inputs
+	push 	OFFSET unsorted_array; Parameter that holds the address of the array holding all the user entered variables
+	call 	displayArraySum ; Display the sorted array
+
+	; ------------Calculate and Display Average of Int Array section--------------------
+	push	OFFSET avg_arr_msg ; Parameter that holds the address of the sum output message
+	push	OFFSET recursive_val_holder ; Parameter that holds the address of the string array used for display
+	push	sum_unsorted_array; Parameter that holds the sum of the integer array
+	push	NUM_OF_INPUTS; Parameter that holds the constant for number of inputs
+	call 	displayArrayAverage ; Display the sorted array
+
 	; ------------Farwell Section-----------------------
-	; NEED TO TEST THIS
 	push 	OFFSET exit_msg
 	call	farewell
 
@@ -203,7 +206,22 @@ displayInstructions ENDP
 
 ; ---------------------------------------------------------
 ; Procedure to get user number input
-; receives: n/a
+; receives: 10 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. Address of the array populate with user values 
+;			2. The number of elements in the array to displayed
+;			3. The offset to the input message
+;			4. The offset to the retry input message
+;			5. The offset to the invalid input message
+;			6. The value that represents the number of elements in both
+;			   the arrays passed in.
+; 			7. The value that represents the size of each array element
+;			   for both arrays passed in above.
+;			8. The offset to the the source array. This array holds
+;			   the user entered string.
+;			9. The offset to hold the destination array. This array
+;			   holds the result after number validation.
+;			10. The offset to hold the final integer result.
 ; returns: Modifies num_primes_toDisplay
 ; preconditions: n/a
 ; registers changed: n/a
@@ -215,21 +233,15 @@ getUserNumberInputArray PROC
 	mov 	esi, [ebp+36] ; Save the address of the array
 
 	StartUserNumInput:
-		; DESIGN NOTE: I decided to pass in values from the .data segment
-		;   		   into the readVal method directly because. The 
-		;			   getUserNumberInputArray method is only supposed to
-		;  			   test readVal. It would be unwieldly to have to pass 
-		; 			   in 7 parameters. 
-
 		; Get number from user
-		push 	OFFSET input_msg ; Param: input message
-		push 	OFFSET retry_input_msg ; Param: retry input message
-		push 	OFFSET invalid_input_msg ; Param: invalid input message
-		push 	input_length ; Param: the input array length
-		push 	input_type_size	; Param: the input array element size
-		push	OFFSET input_before_validate ; Param: the address to the source array 
-		push	OFFSET input_after_validate ; Param: the address to the destination array 
-		push	OFFSET integer_result ; Param; the address to the final integer result
+		push 	[ebp+44] ; Param: input message
+		push 	[ebp+48] ; Param: retry input message
+		push 	[ebp+52] ; Param: invalid input message
+		push 	[ebp+56] ; Param: the input array length
+		push 	[ebp+60] ; Param: the input array element size
+		push	[ebp+64] ; Param: the address to the source array 
+		push	[ebp+68] ; Param: the address to the destination array 
+		push	[ebp+72] ; Param: the address to the final integer result
 		call	readVal
 
 		; Save 10 unsigned int into the passed in array
@@ -244,12 +256,12 @@ getUserNumberInputArray PROC
 		loop StartUserNumInput
 
 		popad
-		ret		8
+		ret	40	
 getUserNumberInputArray ENDP
 
 ; ---------------------------------------------------------
 ; Procedure to get user string input and convert to a number
-; receives: 5 Parameters on the system stack
+; receives: 8 Parameters on the system stack
 ;			Here is the list from the top of the stack to the bottom:
 ;			1. The offset to hold the final integer result.
 ;			2. The offset to hold the destination array. This array
@@ -263,7 +275,7 @@ getUserNumberInputArray ENDP
 ;			6. The offset to the invalid input message
 ;			7. The offset to the retry input message
 ;			8. The offset to the input message
-; returns: Modifies num_primes_toDisplay
+; returns: The final value is stored in the second parameter above.
 ; preconditions: n/a
 ; registers changed: n/a
 ; ---------------------------------------------------------
@@ -416,9 +428,11 @@ readVal ENDP
 
 ; ---------------------------------------------------------
 ; Procedure clears array by filling it with null terminating characters. 
-; receives: 3 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is number of elements
-;			in the array. The third parameter is the type size of the element.
+; receives: 3 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. Address of the array to clear
+;			2. The number of elements in the array to display
+;			3. The type size of the element
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
@@ -435,6 +449,7 @@ clearAllElementsInArray PROC
 	cmp		ecx, 0
 	jle		endArrayClearLoop
 
+	; Loop to clear all elements in the array
 	startArrayClearLoop:
 		mov 	[esi], eax ; Replace current element with zero
 		add 	esi, ebx ; Increment to next element
@@ -448,9 +463,11 @@ clearAllElementsInArray ENDP
 
 ; ---------------------------------------------------------
 ; Procedure displays the given array
-; receives: 2 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is number of elements
-;			in the array
+; receives: 3 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. Address of the array to display
+;			2. The number of elements in the array to display
+;			3. Address of the string array used for display 
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
@@ -464,10 +481,7 @@ displayArray PROC
 
 	displayNextElement:
 
-	;	mov 	eax, [esi]
-	;	call 	writedec ; Write out the current element
-		;push 	OFFSET recursive_val_holder ; Param: Address to hold the recursive value 
-		push 	OFFSET recursive_val_holder ; Param: Address to hold the recursive value 
+		push 	[ebp+44] ; Param: Address to hold the recursive value 
 		push 	[esi] ; Param: the int to display
 		call 	writeVal ; Output the numerical value
 
@@ -483,22 +497,25 @@ displayArray PROC
 		call 	writestring ; Add three spaces after the displayed number
 
 	skipLastDelimiterAdd:
-		loop 	displayNextElement
+		loop 	displayNextElement ; Restart loop to display another element if ecx is not 0
 
-		call	CrLf
 		call	CrLf
 
 	popad
-	ret 8
+	ret 12
 displayArray ENDP
 
 ; ---------------------------------------------------------
 ; Procedure displays the given integer
-; receives: 1 parameter on the stack. The topmost parameter is 
-;			the integer
+; receives: 2 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. The int value to display
+;			2. The offset to the string array that will be used as a 
+;			   vehicle to display a string value.
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
+; Note: This is a recursive procedure.
 ; ---------------------------------------------------------
 writeVal PROC
 	pushad
@@ -507,173 +524,119 @@ writeVal PROC
 	mov 	eax, [ebp+36] ; Get the int value
 	mov 	ebx, 10 ; Save the divisor
 
+	; --- Recursive Definition --- 
+	; Base Case: 
+	;	If quotient of ((passed in number) / 10) == 0
+	;		Execute displayString on the remainder
+	;		return from procedure call
+	; Recursive Case:
+	;	If base case is false
+	;		call writeVal with the (integer / 10)
 
-	; example 123 -- 
-	; need to get first digit, then second digit, then third digit
-	; divide eax / ebx
-	;If eax == 0
-	;{
-	;	write edx
-	;	return
-	;}
-	;else
-	;{
-	;	push 	eax ; Param: the int to display 
-	;	call 	writeVal
-	;	write 	edx
-	;}
-	cdq
-	div 	ebx
-	cmp 	eax, 0
-	jne 	recurseDeeper
-	jmp		endRecurse
+	cdq		; Clear edx, which will be used for division
+	div 	ebx ; Divide eax by ebx
+	cmp 	eax, 0 ; Check if we hit the base case
+	jne 	recurseDeeper ; If not base case, go to the recursive section
+	jmp		endRecurse ; This is the base case, go to the base case section
 
 	recurseDeeper:
-		push	[ebp+40]
-		push 	eax
-		call 	writeVal
+		; This is the recursive case
+		push	[ebp+40] ; Param: the one character string array used for display
+		push 	eax ; Param: the integer that we want to recurse on in order to display
+		call 	writeVal ; Do a recursive call
 	endRecurse:
+		; This is the base case
 		add		dl, 48 ; Add 48 to get the ascii integer value
-		mov		edi, [ebp+40] 
+		mov		edi, [ebp+40] ; Save the string array into edi
 		mov 	[edi], dl ; Save integer character to destination address
-		displayString [ebp+40]	
+		displayString [ebp+40] ; Call the macro to display the string
+
 	popad
 	ret 8 
 writeVal ENDP 
 
 ; ---------------------------------------------------------
-; Procedure Displays the median number of a sorted array.
-; receives: 2 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is number of elements
-;			in the array
+; Procedure displays the sum of all the elements in a given integer array
+; receives: 5 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. The address of the array to find the sum of
+;			2. The number of elements in the array
+;			3. The address of where to put the final sum result
+;			4. The address to hold the string array for display
+;			5. The address of the output message to display
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
+; Note: This is a recursive procedure.
 ; ---------------------------------------------------------
-DisplayMedian PROC
+displayArraySum PROC
 	pushad
 
+	; Initialize registers
 	mov 	ebp, esp
-	mov 	ecx, [ebp+40] ; Save number of elements in the array
+	mov 	eax, 0 ; Clear eax
+	mov 	ecx, [ebp+40] ; Save number of elements in the array for looping
 	mov 	esi, [ebp+36] ; Save the address of the array
+	mov 	edi, [ebp+44] ; Save the address of the sum result
 
-	; Display the median message
-	mov 	edx, OFFSET median_display_msg
-	call 	writestring ; Displays the median message
+	displayNextElement:
 
-	; Display the left parenthesis
-	mov		edx, OFFSET left_paren_display
-	call 	writestring	; Displays "("
+		add 	eax, [esi] ; Add value at integer array to value in eax
+		add 	esi, 4 ; Increment to next element
+		loop 	displayNextElement ; Restart loop to add next integer element
+		mov 	[edi], eax ; Save final sum into sum destination 
 
-	; if odd number of elements find the middle number
-	mov		eax, ecx ; move the number of elements in the array into eax
-	cdq
-	mov		ebx, 2
-	div 	ebx
-	cmp 	edx, 1
-	je 		DisplayMedOddArray ; If edx is 1, then that means there is an odd number elements in the array.
-							   ; This means we should display the middle number
+	; Display the output message
+	displayString [ebp+52]
 
-	; if an even number of elements, display the average of the two middle numbers
-	push 	eax ; push the position of the middle number onto the stack
-	push 	esi ; push array address onto the stack
-	call 	DisplayMedianOfEvenArray
-	jmp 	ExitDisplayMedian
+	; Display the sum
+	push 	[ebp+48] ; Param: Address to hold the recursive value 
+	push 	[edi] ; Param: the int to display
+	call 	writeVal ; Output the numerical value
+	call	CrLf
 
-	DisplayMedOddArray:
-		push 	eax ; push the position of the right middle number onto the stack
-		push 	esi ; push array address onto the stack
-		call 	DisplayMedianOfOddArray
-
-
-
-	ExitDisplayMedian:
-		; Display the right parenthesis
-		mov		edx, OFFSET right_paren_display
-		call 	writestring ; Displays ")"
-
-		mov 	edx, OFFSET period_msg
-		call 	writestring ; Displays the period at the end of the message
-
-	call CrLf
-	call CrLf
 	popad
-	ret 8
-DisplayMedian ENDP
+	ret 20 
+displayArraySum ENDP 
 
 ; ---------------------------------------------------------
-; Procedure Displays the average of the two numbers in the middle of an even array. (the median)
-; receives: 2 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is the position of the median
+; Procedure displays the average of all the elements in a given integer array. 
+; Note: The average is rounded down.
+; receives: 4 Parameters on the system stack
+;			Here is the list from the top of the stack to the bottom:
+;			1. The number of elements in the array
+;			2. The final sum result
+;			3. The address to hold the string array for display
+;			4. The address of the output message to display
 ; returns: n/a
 ; preconditions: parameters must be in the stack
 ; registers changed: n/a
+; Note: This is a recursive procedure.
 ; ---------------------------------------------------------
-DisplayMedianOfEvenArray PROC
+displayArrayAverage PROC
 	pushad
 
-	mov 	ebp,esp
-	mov 	ecx, [ebp+40] ; save position of right middle number of array into ecx
-	mov 	esi, [ebp+36] ; save sorted array address
+	; Initialize registers
+	mov 	ebp, esp
+	mov 	eax, 0 ; Clear eax
+	mov 	ebx, [ebp+36] ; Get the divisor
+	mov 	eax, [ebp+40] ; Get the dividend
 
-	; Put the left middle position into ebx
-	mov 	ebx, ecx
-	dec 	ebx
-
-	; Get the value at the position of the right middle number
-	mov 	eax, TYPE esi
-	mul 	ecx ; multiply size of the elements by the element position to get the real offset of the right middle number
-	mov 	ecx, [esi+eax] ; Get the right middle number and put into ecx
-
-	; Get the value at the position of the left middle number
-	mov 	eax, TYPE esi
-	mul 	ebx ; multiply size of the elements by the element position to get the real offset of the left middle number
-	mov 	eax, [esi+eax] ; Get the left middle number and put into edx
-
-	; Find the average of the two middle numbers
-	add 	eax, ecx ; add the two middle numbers and store in eax
-	mov 	ebx, 2
 	cdq
-	div 	ebx ; divide eax by ebx. eax now contains the approx average
-	cmp 	edx, 1
-	je 		DisplayAverageWithDecimal ; This means we need to display a ".5" after the average because the average is not a whole number
-	call 	writedec ; else we can just display eax because it is a whole number
-	jmp 	ExitDisplayMedEvenArray
+	div 	ebx ; Divide eax by ebx
 
-	DisplayAverageWithDecimal:
-		call 	writedec ; Display the whole number
-		mov 	edx, OFFSET half_num_string ; Display the half number to complete the median
-		call 	writestring
+	; Display the average output message
+	displayString [ebp+48]
 
-	ExitDisplayMedEvenArray:
+	; Display the average number 
+	push 	[ebp+44] ; Param: Address to hold the recursive value 
+	push 	eax ; Param: the int to display
+	call 	writeVal ; Output the numerical value
+	call	CrLf
 
 	popad
-	ret 8
-DisplayMedianOfEvenArray ENDP
-
-; ---------------------------------------------------------
-; Procedure Displays the number at the center of an odd array. (the median)
-; receives: 2 parameters on the stack. The topmost parameter is address
-;			of the array. The second parameter is the position of the median
-; returns: n/a
-; preconditions: parameters must be in the stack
-; registers changed: n/a
-; ---------------------------------------------------------
-DisplayMedianOfOddArray PROC
-	pushad
-
-	mov 	ebp,esp
-	mov 	ecx, [ebp+40] ; save position of middle number of array into ecx
-	mov 	esi, [ebp+36] ; save sorted array address
-
-	mov 	eax, TYPE esi
-	mul 	ecx ; multiply size of the elements by the element position to get the real offset of the median
-	mov 	eax, [esi+eax] ; Get the median
-	call	writedec ; display the median
-
-	popad
-	ret 8
-DisplayMedianOfOddArray ENDP
+	ret 16
+displayArrayAverage ENDP 
 
 ; ---------------------------------------------------------
 ; Procedure outputs the end of program messages
@@ -686,6 +649,7 @@ DisplayMedianOfOddArray ENDP
 farewell PROC
 	pushad
 	mov 	ebp, esp
+
 	; Outputs the exit messages
 	call	CrLf
 	call	CrLf
