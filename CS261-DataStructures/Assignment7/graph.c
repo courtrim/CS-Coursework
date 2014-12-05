@@ -223,12 +223,13 @@ int DFSRecursive(Graph* g, Vertex* source, Vertex* destination)
  */
 int _existsInArray(char arrayToSearch[], int arraySize, char charToFind)
 {
-	/*FIXME*/
 	int i;
+	/*Scan array for character*/ 
 	for (i = 0; i < arraySize; ++i)
 	{
 		if (arrayToSearch[i] == charToFind)
 		{
+			/*Character found*/
 			return 1;
 		}
 	}

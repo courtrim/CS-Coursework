@@ -1,0 +1,5 @@
+Answers to Assignment 7 Questions:
+
+1. The graph is stored in an edge list because each vertex has a list of all of its neighbours. 
+
+2. The graphs that are connected are graph 1, graph 2, graph 3, graph 4, and graph 5. All the graphs 
