@@ -213,6 +213,29 @@ int DFSRecursive(Graph* g, Vertex* source, Vertex* destination)
 	return DFSRecursiveHelper(g, source, destination);
 }
 
+/* This function checks to see if a char exists in the specified
+ * char array
+ * param: arrayToSearch	- Char array to search
+ * param: arraySize - size of the array to search
+ * param: charToFind  - Char to find
+ * ret: Return 0 - Char does not exist in array
+ * 		Return 1 - Char exists in array
+ */
+int _existsInArray(char arrayToSearch[], int arraySize, char charToFind)
+{
+	/*FIXME*/
+	int i;
+	for (i = 0; i < arraySize; ++i)
+	{
+		if (arrayToSearch[i] == charToFind)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 /* This function should return a boolean (encoded as an int) indicating
  * whether or not a path exists between the argument vertices.
  * param: g			Graph to perform the search in
@@ -222,7 +245,53 @@ int DFSRecursive(Graph* g, Vertex* source, Vertex* destination)
  */
 int DFS(Graph* g, Vertex* source, Vertex* destination)
 {
-	/* FIXME you will write this */
+	/*Note: DFS uses the stack abstraction.*/
+
+	/*Create a set of reachable vertices, initially empty.*/
+	char reachableVertices[g->numVertices];
+	int reachableVertsSize = 0;
+
+	/*Create a stack for vertices known to be reachable.*/
+	struct cirListDeque *verticesKnownReachableStack = malloc(sizeof(struct cirListDeque));
+	initCirListDeque(verticesKnownReachableStack);
+	struct Vertex *currVertex;
+	int i;
+
+	/*Add start vertex to stack*/
+	addFrontCirListDeque(verticesKnownReachableStack, source);
+
+	/*While stack is not empty.*/
+	while(!isEmptyCirListDeque(verticesKnownReachableStack))
+	{
+		currVertex = frontCirListDeque(verticesKnownReachableStack);
+		removeFrontCirListDeque(verticesKnownReachableStack);
+
+		/*Pop stack and add to reachable array if the popped element is not in the array.*/
+		if (!_existsInArray(reachableVertices, reachableVertsSize, currVertex->label))
+		{
+			reachableVertices[reachableVertsSize] = currVertex->label;
+			reachableVertsSize++;
+
+			/*Add all reachable neighbors to the stack.*/
+			for (i = 0; i < currVertex->numNeighbors; i++)
+			{
+				addFrontCirListDeque(verticesKnownReachableStack, currVertex->neighbors[i]);
+			}
+		}
+
+		/*Check the array to see if we can reach our destination.*/
+		if (_existsInArray(reachableVertices, reachableVertsSize, destination->label))
+		{
+			/*Exit routine if we can reach our destination*/
+			return 1;
+		}
+	}
+
+	/*Clean up stack*/
+	removeAllCirListDeque(verticesKnownReachableStack);
+	free(verticesKnownReachableStack);
+	verticesKnownReachableStack = 0;
+
 	return 0;
 }
 
@@ -235,6 +304,52 @@ int DFS(Graph* g, Vertex* source, Vertex* destination)
  */
 int BFS(Graph* g, Vertex* source, Vertex* destination)
 {
-	/* FIXME you will write this */
+	/*Note: BFS uses the queue abstraction.*/
+
+	/*Create a set of reachable vertices, initially empty.*/
+	char reachableVertices[g->numVertices];
+	int reachableVertsSize = 0;
+
+	/*Create a queue for vertices known to be reachable.*/
+	struct cirListDeque *verticesKnownReachableQueue = malloc(sizeof(struct cirListDeque));
+	initCirListDeque(verticesKnownReachableQueue);
+	struct Vertex *currVertex;
+	int i;
+
+	/*Add start vertex to queue*/
+	addFrontCirListDeque(verticesKnownReachableQueue, source);
+
+	/*While queue is not empty.*/
+	while(!isEmptyCirListDeque(verticesKnownReachableQueue))
+	{
+		currVertex = backCirListDeque(verticesKnownReachableQueue);
+		removeBackCirListDeque(verticesKnownReachableQueue);
+
+		/*Pop queue and add to reachable array if the popped element is not in the array.*/
+		if (!_existsInArray(reachableVertices, reachableVertsSize, currVertex->label))
+		{
+			reachableVertices[reachableVertsSize] = currVertex->label;
+			reachableVertsSize++;
+
+			/*Add all reachable neighbors to the queue.*/
+			for (i = 0; i < currVertex->numNeighbors; i++)
+			{
+				addFrontCirListDeque(verticesKnownReachableQueue, currVertex->neighbors[i]);
+			}
+		}
+
+		/*Check the array to see if we can reach our destination.*/
+		if (_existsInArray(reachableVertices, reachableVertsSize, destination->label))
+		{
+			/*Exit routine if we can reach our destination*/
+			return 1;
+		}
+	}
+
+	/*Clean up queue*/
+	removeAllCirListDeque(verticesKnownReachableQueue);
+	free(verticesKnownReachableQueue);
+	verticesKnownReachableQueue = 0;
+
 	return 0;
 }

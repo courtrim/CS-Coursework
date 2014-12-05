@@ -7,7 +7,8 @@ int main ()
 	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
 	/* change this number to generate different graphs */
-	int graphTestNumber = 3; /* permissible values are 1-5 */
+	int graphTestNumber = 1; /* permissible values are 1-5 */
+
 	/* switch this to 0 to use BFS */
 	int useDFS = 1;
 	
@@ -42,6 +43,8 @@ int main ()
 		{			
 			printf("%c to %c\t\t\t", g.vertexSet[i].label, g.vertexSet[j].label);
 			if(useDFS)
+				/*if(DFS(&g, &g.vertexSet[i], &g.vertexSet[j])) */
+				/*if(DFSRecursive(&g, &g.vertexSet[i], &g.vertexSet[j]))*/
 				if(DFS(&g, &g.vertexSet[i], &g.vertexSet[j]))
 					printf("reachable!\n");
 				else
